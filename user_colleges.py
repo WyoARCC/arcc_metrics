@@ -65,10 +65,15 @@ colleges['Undergraduate'] = set()
 base = 'dc=windows,dc=uwyo,dc=edu'
 attr = ['memberOf']
 
-# Filter out ARCC users by their department. I probably shouldn't have done this in one line, it's messy
-userinfo = filter(lambda x: 'department' not in x[1] or ('IT-Research Support' not in x[1]['department'][0]) and ('IT/Research Support' not in x[1]['department'][0]), userinfo)
 
 for user in userinfo:
+    # Skip ARCC employees
+    if 'department' in user[1]:
+        department = user[1]['department'][0]
+        if 'IT-Research Support' in department or 'IT/Research Support' in department:
+            continue
+
+
     memberOf = user[1]['memberOf']
     # Get a list of just the group names that the member belongs too
     #groups = [re.search('CN=(.*?),', member).group(1) for member in memberOf]
