@@ -4,22 +4,19 @@
 # The information comes from ARCC's ldap server and UWyo's AD server.
 # Requires ldap, matplotlib, numpy
 
-import ldap
+import uwyoldap
 import getpass
-import re
 import matplotlib.pyplot as plt
 import numpy as np
+import ldap
 from sys import exit
 
 
-# Whether or not college with no users are displayed or not.
+# Whether or not colleges with no users are displayed or not.
 includeZeros = False
-
 
 # Servers
 arcc_ldap = 'ldaps://arccidm1.arcc.uwyo.edu'
-uwyo_ldap = 'ldaps://windows.uwyo.edu'
-
 
 # Prompt for username and password. Username should be domain\user format
 username = raw_input("Username for UWyo AD Server: ")
@@ -27,27 +24,21 @@ password = getpass.getpass()
 
 # Init ldap
 arcc_d = ldap.initialize(arcc_ldap)
-uwyo_d = ldap.initialize(uwyo_ldap)
-
-# The UWyo AD server has a self-signed cert (I think),
-# which throws an error without this option.
-uwyo_d.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
 
 # Connect to UWyo first, because if it fails the script fails
 try:
-    uwyo_d.simple_bind_s(username, password)
+    uwyo_d = uwyoldap.UWyoLDAP(username, password)
     del password
 except ldap.INVALID_CREDENTIALS:
-    uwyo_d.unbind()
+    del password
     print "Invalid Credentials"
     exit()
 
 # Connect to ARCC ldap server, it supports anonymous searches,
-# so no need for credentials. It doesn't need the option that was set
-# for the UWyo AD server.
+# so no need for credentials.
 arcc_d.simple_bind_s()
 
-# Perfrom the search
+# Perform the search
 base = 'dc=arcc,dc=uwyo,dc=edu'
 filt = 'cn=mountmoran'
 mtmoran = arcc_d.search_s(base, ldap.SCOPE_SUBTREE, filt)
@@ -55,84 +46,45 @@ arcc_d.unbind()
 
 # Pull users out
 users = mtmoran[0][1]['memberUid']
-
 # Get the user information from the UWyo AD server in one request.
-base = 'cn=Users,dc=windows,dc=uwyo,dc=edu'
-filt = '(|(cn=' + '(cn='.join("{})".format(user) for user in users) + ')'
-userinfo = uwyo_d.search_s(base, ldap.SCOPE_SUBTREE, filt)
+uw_users = uwyo_d.searchByCN(users, uwyo_d.USER)
+l = [user.cn for user in uw_users]
 
-collegeCount = {'Ag & Nat Resources': 0, 'Arts & Sciences': 0,
-                'Business': 0, 'Education': 0, 'Engineering': 0,
-                'Health Sciences': 0, 'Law': 0, 'Undergraduate': 0}
-
-colleges = {}
-colleges['Undergraduate'] = set()
-base = 'dc=windows,dc=uwyo,dc=edu'
-attr = ['memberOf']
-
-
-for user in userinfo:
-    # Skip ARCC employees
-    if 'department' in user[1]:
-        department = user[1]['department'][0]
-        if 'IT-Research Support' in department or\
-                'IT/Research Support' in department:
-            continue
-
-    memberOf = user[1]['memberOf']
-
-    # Get a list of just the group names that the member belongs too
-    #groups = [re.search('CN=(.*?),', member).group(1) for member in memberOf]
-    username = re.search('CN=(.*?),', user[0]).group(1)
-    foundCol = False
-
-    for member in memberOf:
-        # Get just the cn of the group
-        group = re.search('CN=(.*?),', member).group(1)
-
-        # The groups that indicate what department they are in begin with DEPT_
-        if group.startswith("DEPT_"):
-            # Create a filter to query the info for the group with
-            filt = 'cn=' + group
-            groupinfo = uwyo_d.search_s(base, ldap.SCOPE_SUBTREE, filt, attr)
-
-            # Get just the cn of the group (this group is the college)
-            col = re.search('CN=(.*?),', groupinfo[0][1]['memberOf'][0])
-            col = col.group(1)
-
-            # All of the college groups have DIV_ in front of them,
-            # so remove it. Also remove the 'College of' in front
-            col = col[4:]
-            if col.startswith('College of '):
-                col = col[len('College of '):]
-
-            # If the entry in the dictionary doesn't exist, create it
-            if col not in colleges:
-                colleges[col] = set()
-            colleges[col].add(username)
-            foundCol = True
-
-    # Can't get the users's college,
-    # this means they are probably undergrad students
-    if not foundCol:
-        colleges['Undergraduate'].add(username)
-
-# Put the number of users in each college in collegeCount,
-# also get a total number of users
+collegeCount = {'Ag & Nat Resources': 0,
+                'Arts & Sciences': 0,
+                'Business': 0,
+                'Education': 0,
+                'Engineering': 0,
+                'Health Sciences': 0,
+                'Law': 0,
+                'Undergraduate': 0}
 total = 0
-for college in colleges:
-    if college in collegeCount:
-        collegeCount[college] = len(colleges.get(college))
-        total += len(colleges.get(college))
+
+for user in uw_users:
+    # Skip ARCC and retired employees 
+    if user.isARCCEmployee or user.isRetired:
+        continue
+
+    # If the entry in the dictionary doesn't exist, create it
+    col = user.getCollege()
+    if len(set(col)) > 1:
+        print user.cn + " belongs to multiple colleges. Only one of them has\
+        been counted."
+
+    try:
+        collegeCount[col[0]] += 1
+        total += 1
+    except:
+        if user.isFaculty:
+            "Something else needs to be done here."
+        if user.isStudent:
+            collegeCount['Undergraduate'] += 1
+            total += 1
+
 
 if not includeZeros:
     collegeCount = {k: v for k, v in collegeCount.iteritems() if v != 0}
 
-# This fixes the fact that some people don't show up in an actual college,
-# but they are in other things that are in the colleges dictionary.
-# They need to be added to undergrads.
-collegeCount['Undergraduate'] = (collegeCount.get('Undergraduate')
-                                 + (len(userinfo) - total))
 
 # Plot the data
 x = np.arange(len(collegeCount))
