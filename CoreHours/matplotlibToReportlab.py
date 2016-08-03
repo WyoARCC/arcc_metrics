@@ -14,7 +14,7 @@ def form_xo_reader(imgdata):
 
 
 class PdfImage(Flowable):
-    def __init__(self, img_data, width=200, height=200):
+    def __init__(self, img_data, width=400, height=200):
         self.img_width = width
         self.img_height = height
         self.img_data = img_data
@@ -45,48 +45,60 @@ class PdfImage(Flowable):
 
 
 
-def make_chart(x,y1,y2):
-    fig = plt.figure(figsize=(9, 8))
+def make_chart(x,y1,y2,statementMonth):
+    y1a=[]
+    y2a=[]
+    for i in range(statementMonth+1):
+        y1a.append(y1[i])
+        y2a.append(y2[i])
+
+    fig = plt.figure(figsize=(9,5))
 
     width=0.4
 
-    cpu_hours_plot = plt.bar(np.arange(len(y1)), y1, align='edge', width=width, color='r')
+    cpu_hours_plot = plt.bar(np.arange(len(y1)), y1, align='edge', width=width,
+        color='r')
     
-    label1 = plt.ylabel("CPU Hours Used", color='red')
+    label1 = plt.ylabel("CPU Hours Used", fontsize =20, color='red')
     
     for i in plt.gca().get_yticklabels():
         i.set_color("red")
     
-    cpu_slope, cpu_intercept = np.polyfit(np.arange(len(y1)), y1, 1)
+    cpu_slope, cpu_intercept = np.polyfit(np.arange(len(y1a)), y1a, 1)
     trendline_cpu = cpu_intercept + (cpu_slope * np.arange(len(y1)))
     fit_label_cpu = 'Linear fit ({0:.2f})'.format(cpu_slope)
 
-    plt.plot(np.arange(len(y1)), trendline_cpu, color='red', linestyle='--', label=fit_label_cpu)
+    plt.plot(np.arange(len(y1)), trendline_cpu, color='red', linestyle='--',
+        label=fit_label_cpu)
     
     plt.ylim(ymin = 0)
 
-    plt.annotate('CPUH = (%d)(x) + %d' % (cpu_slope,cpu_intercept), (0.05, 0.95), xycoords='axes fraction')
+    plt.annotate('CPUH = (%d)(x) + %d' % (cpu_slope,cpu_intercept),
+        (0.05, 1.08), xycoords='axes fraction', fontsize=15, color='r')
     
     plt.twinx()
     
     plt.xticks(np.arange(len(y1))+width, x, size='small')
 
-    num_jobs_plot = plt.bar(np.arange(len(y2))+width, y2, align='edge', width=width, color='b')
+    num_jobs_plot = plt.bar(np.arange(len(y2))+width, y2, align='edge',
+        width=width, color='b')
     
-    label2 = plt.ylabel("Number of Jobs", color='blue')
+    label2 = plt.ylabel("Number of Jobs", fontsize =20, color='blue')
     
     for i in plt.gca().get_yticklabels():
         i.set_color("blue")
 
-    job_slope, job_intercept = np.polyfit(np.arange(len(y2)), y2, 1)
+    job_slope, job_intercept = np.polyfit(np.arange(len(y2a)), y2a, 1)
     trendline_job = job_intercept + (job_slope * np.arange(len(y2)))
     fit_label_job = 'Linear fit ({0:.2f})'.format(job_slope)
 
-    plt.plot(np.arange(len(y2)), trendline_job, color='blue', linestyle='--', label=fit_label_job)
+    plt.plot(np.arange(len(y2)), trendline_job, color='blue', linestyle='--',
+        label=fit_label_job)
     
     plt.ylim(ymin = 0)
 
-    plt.annotate('NumJobs = (%d)(x) + %d' % (job_slope,job_intercept), (0.05, 0.9), xycoords='axes fraction')
+    plt.annotate('NumJobs = (%d)(x) + %d' % (job_slope,job_intercept),
+        (0.05, 1.03), xycoords='axes fraction', fontsize=15, color='b')
 
     plt.legend([cpu_hours_plot, num_jobs_plot], ['CPU Hours', 'Number of Jobs'])
 
@@ -95,6 +107,6 @@ def make_chart(x,y1,y2):
     imgdata.seek(0)
     reader = form_xo_reader
     image = reader(imgdata)
-    img = PdfImage(image, width=3.85*inch, height=2.9*inch)
+    img = PdfImage(image, width=6.15*inch, height=3.05*inch)
     
     return img
