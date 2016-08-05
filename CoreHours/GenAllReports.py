@@ -3,6 +3,7 @@
 from GenAllOutputFiles import GenAll
 from CoreHoursByMonthReport_V8 import GenReport
 import ipaShowTools
+import ldapShowTools
 import os
 from datetime import date
 import argparse
@@ -16,9 +17,15 @@ parser = argparse.ArgumentParser(
 	+" document contains information regarding the number of jobs submitted"\
 	+" by the group as well as the number of CPU hours used on Mt. Moran.")
 
-parser.add_argument("-m", "--month", type=int, choices=[1,2,3,4,5,6,7,8,9,10,11,12],
-	help="the month in which the usage report will be generated for, "\
-	+"if this option is not selected the most recent month will be used")
+parser.add_argument("-i", "--ipa", action="store_true",
+	help="when this option is selected, the 'ipa' commands will be used,"\
+	+" otherwise the 'ldapsearch' commands will be used (ldapsearch commands"\
+	+" are the default)")
+
+parser.add_argument("-m", "--month", type=int,
+	choices=[1,2,3,4,5,6,7,8,9,10,11,12],help="the month in which the usage"\
+	+" report will be generated for, if this option is not selected the most"\
+	+" recent month will be used")
 
 args = parser.parse_args()
 
@@ -36,34 +43,46 @@ Months = {1:'Jan', 2:'Feb', 3:'Mar', 4:'April', 5:'May', 6:'June', 7:'July',
 
 theDateYYYYmmdd = date.today().strftime("%Y-%m-%d") #YYYY-mm-dd format
 
-badGroups = ['bsa','taed'] # list of groups to ignore
+# list of groups to ignore
+badGroups = ['bsa','taed','proteinstructureevol','cudaperfmodelling',
+	'gpucfdcomputing','rmacc','utahchpc','arcc','bc-201606','bc-201607']
 
+# all groups with jobs ran on Mt. Moran
 accounts=GenAll(statementMonth)
 
-activeGroups = ipaShowTools.activeGroups()
+# all groups that are active members of Mt. Moran 
+activeGroups = ipaShowTools.activeGroups() if args.ipa else ldapShowTools.activeGroups()
 
 
 ###############################################################################
 # Debugging purposes
+# print 'A list of all accounts:\n', accounts
+
+# print '\nA list of all active groups:\n', activeGroups
+
 print 'Generating monthly statements for the month of %s' % Months[statementMonth]
 # end debugging
 ###############################################################################
 
+if args.ipa:
+	print 'Using ipa command.'
+else:
+	print 'Using ldapsearch command.'
 
 for account in accounts:
 	if (activeGroups.__contains__(account) and\
 		not(badGroups.__contains__(account))):
 
-		loginName = ipaShowTools.getPI(account)
-		fullName = ipaShowTools.getName(loginName)
-		email = ipaShowTools.getEmail(loginName)
+		uid = ipaShowTools.getPI(account) if args.ipa else ldapShowTools.getPI(account)
+		fullName = ipaShowTools.getName(uid) if args.ipa else ldapShowTools.getName(uid)
+		email = ipaShowTools.getEmail(uid) if args.ipa else ldapShowTools.getEmail(uid)
 		GenReport(account, fullName, statementMonth)
 
 ###############################################################################
 # debugging section, remove from final version
 
 		print '\nGroup: %s' % account
-		print 'PI: %s, %s' % (loginName, fullName)
+		print 'PI: %s, %s' % (uid, fullName)
 		print 'Email: %s\n' % email
 
 		# myEmail = 'jclay6@uwyo.edu'

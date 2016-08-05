@@ -31,8 +31,8 @@ def activeGroups():
 		return listOfGroups
 	
 	except:
-		print "The command 'ipa group-show mountmoran --all | grep -i 'member"\
-			+" groups'' failed."
+		print "The command: (ipa group-show mountmoran --all | grep -i 'member"\
+			+" groups') failed."
 		exit(1)
 
 	
@@ -52,8 +52,8 @@ def getPI(groupName):
 		return loginName
 	
 	except:
-		print "The command 'ipa group-show " + groupName + " --all | grep -i"\
-			+" 'Description:'' failed."
+		print "The command: (ipa group-show " + groupName + " --all | grep -i"\
+			+" 'Description:') failed."
 		return ''
 		#exit(1)
 
@@ -74,8 +74,8 @@ def getName(loginName):
 		return displayName
 
 	except:
-		print "The command 'ipa user-show " + loginName + " --all | grep -i"\
-			+" 'Display name:'' failed."
+		print "The command: (ipa user-show " + loginName + " --all | grep -i"\
+			+" 'Display name:') failed."
 		return ''
 		#exit(1)
 
@@ -96,7 +96,7 @@ def getEmail(loginName):
 		return email
 	
 	except:
-		print "The command 'ipa user-show " + loginName + " --all | grep -i"\
-			+" 'Email address:'' failed."
+		print "The command: (ipa user-show " + loginName + " --all | grep -i"\
+			+" 'Email address:') failed."
 		return ''
 		#exit(1)
