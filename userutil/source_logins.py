@@ -120,24 +120,26 @@ print "Logins from Campus: " + str(logins_from_campus)
 print "Logins from off Campus: " + str(logins_from_home)
 print "Total Logins: " + str(total_logins)
 
-fig_size = plt.rcParams["figure.figsize"]
+#fig_size = plt.rcParams["figure.figsize"]
 
 # Set figure width to 9 and height to 9
-fig_size[0] = 9
-fig_size[1] = 9
+#fig_size[0] = 9
+#fig_size[1] = 9
 
-plt.rcParams["figure.figsize"] = fig_size
-
+#plt.rcParams["figure.figsize"] = fig_size
+plt.figure(figsize=(7,7))
 
 # Generate the pi chart, with labels.
 # Autopct can take a function as an argument and it passes the percent to it,
 # and the percent needs to be turned back into the actual data
 plt.pie([logins_from_campus, logins_from_home],
         labels=["Campus", "Other"],
-        colors=["b", "g"],
+        colors=["r", "#FF6600"],
         autopct=lambda(a): '{:g}'.format(a * total_logins / 100))
+plt.title('Logins from on Campus vs Other', y=1.08)
+plt.axis('equal')
 
-
-#plt.tight_layout()
-plt.legend()
+plt.legend(loc=4)
+plt.tight_layout()
+plt.savefig('Source_of_logins.eps', format='eps', dpi=1000)
 plt.show()
