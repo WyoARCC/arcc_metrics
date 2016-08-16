@@ -37,13 +37,13 @@ colorList = [colors.purple, colors.yellow, colors.slategrey, colors.orange,
 
 
 # Returns a drawing object of the legend for the pie charts
-def legendout(labels): # labels is a list
-	drawing = Drawing(inch, 3*inch)
+def legendout(labels, isCPUH=True): # labels is a list
+	drawing = Drawing(inch, 3*inch) if isCPUH else Drawing(2.5*inch, 3*inch)
 	legend = Legend()
 	legend.alignment = 'right'
-	legend.x = 0
+	legend.x = 0 if isCPUH else 0.25*inch
 	legend.y = 2.75*inch
-	legend.columnMaximum = 13
+	legend.columnMaximum = 13 if isCPUH else 10
 	colorNamePairs = []
 	
 	# ensure legend and pie chart coloring matches (similar loop in
@@ -57,13 +57,13 @@ def legendout(labels): # labels is a list
 
 
 # Returns a drawing object of a pie graph
-def graphout_pie(data, labels): # data and labels are both lists of same size
-	drawing = Drawing(1.25*inch, 1.25*inch)
+def graphout_pie(data, labels, physicalSize): # data and labels are both lists of same size
+	drawing = Drawing(physicalSize*inch, physicalSize*inch)
 	pc = Pie()
 	pc.x = .125*inch
 	pc.y = .125*inch
-	pc.width = inch
-	pc.height = inch
+	pc.width = (physicalSize-0.25)*inch
+	pc.height = (physicalSize-0.25)*inch
 	pc.data = data
 	pc.labels = None
 	pc.slices.strokeWidth = 0.5
@@ -93,7 +93,7 @@ def graphout_bar(CPUH_data, storage_data, labels):
 	return drawing
 
 # returns a table
-def tableout(data): # data is a list of tuples (each tuple is another line)
+def computeTableout(data): # data is a list of tuples (each tuple is another line)
 	header = [['User', 'Jobs(m)', 'Jobs(YTD)', 'CPUH(m)', 'CPUH(YTD)']]
 	
 	totalJobs_month = 0
@@ -116,5 +116,32 @@ def tableout(data): # data is a list of tuples (each tuple is another line)
 		('LINEBELOW',(0,0),(4,0),1,colors.black),
 		('LINEABOVE',(0,len(data)+1),(4,len(data)+1),1,colors.black),
 		('LINEBELOW',(0,len(data)+1),(4,len(data)+1),1,colors.black),]))
+
+	return t
+
+
+def kbToGb(num):
+	return '%.2f' % ((num*(2**10))/float(2**30))
+
+	# returns a table
+def storageTableout(account,projectData,userData): # 
+	header = [['User', 'Usage(GB)', 'Quota(GB)', '% Used', 'File Usage']]
+	percentage = '%.2f' % (100*projectData[0]/float(projectData[1]))
+	
+	projectTableEntry = [[account,kbToGb(projectData[0]),
+		kbToGb(projectData[1]),percentage,(projectData[2]-1)]]
+	
+	userTableEntry = []
+	for (user,blockUsage,filesUsage) in userData:
+		percentage = '%.2f' % (100*blockUsage/float(projectData[1]))
+		userTableEntry.append([user,kbToGb(blockUsage),0,percentage,filesUsage])
+
+	t=Table(header + userTableEntry + projectTableEntry)
+
+	t.setStyle(TableStyle([('ALIGN',(1,1),(4,len(userData)+1),'RIGHT'),
+		('FONT',(0,len(userData)+1),(4,len(userData)+1),'Helvetica-Bold'),
+		('LINEBELOW',(0,0),(4,0),1,colors.black),
+		('LINEABOVE',(0,len(userData)+1),(4,len(userData)+1),1,colors.black),
+		('LINEBELOW',(0,len(userData)+1),(4,len(userData)+1),1,colors.black),]))
 
 	return t

@@ -10,6 +10,8 @@ from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_RIGHT
 
+from mysqlTools import *
+
 
 def GenReport(theAccount,PI,statementMonth):
 	Months = {1:'Jan', 2:'Feb', 3:'Mar', 4:'April', 5:'May', 6:'June', 7:'July', 
@@ -147,18 +149,18 @@ def GenReport(theAccount,PI,statementMonth):
 	computeSummary_info = []
 	computeSummary_info.append(Paragraph("Compute Summary (%s, %s)" 
 		% (Months[statementMonth],'2016'), styleH3))
-	computeSummary_table = Tools.tableout(computeSummaryData)
+	computeSummary_table = Tools.computeTableout(computeSummaryData)
 	computeSummary_info.append(computeSummary_table)
 	ComputeSummaryFrame.addFromList(computeSummary_info, c)
 
 	monthlyCPUH_info = []
-	usage_chart = Tools.graphout_pie(finalMonthlyusage, finalUsers)
+	usage_chart = Tools.graphout_pie(finalMonthlyusage, finalUsers, 1.25)
 	monthlyCPUH_info.append(Paragraph("CPUH (month)", styleN))
 	monthlyCPUH_info.append(usage_chart)
 	CPUHFrame1.addFromList(monthlyCPUH_info, c)
 
 	ytdCPUH_info = []
-	ytdUsage_chart = Tools.graphout_pie(finalYTDUsage, finalUsers)
+	ytdUsage_chart = Tools.graphout_pie(finalYTDUsage, finalUsers, 1.25)
 	ytdCPUH_info.append(Paragraph("CPUH (ytd)", styleN))
 	ytdCPUH_info.append(ytdUsage_chart)
 	CPUHFrame2.addFromList(ytdCPUH_info, c)
@@ -176,5 +178,51 @@ def GenReport(theAccount,PI,statementMonth):
 	storageSummary_info = []
 #	storageSummary_info.append(Paragraph('Storage Summary', styleN))
 #	StorageSummaryFrame.addFromList(storageSummary_info, c)
+
+	c.save() # This marks the end of the frist page of the .pdf document
+
+	# Starting the second page
+
+	
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
+	StorageSummaryFrame = Frame(0.5*inch, 2.5*inch, 5*inch, 6.5*inch, showBoundary=0)
+	PieChartFrame = Frame(5.5*inch, 6*inch, 2.5*inch, 3*inch, showBoundary=0)
+	LegendFrame = Frame(5.5*inch, 2.5*inch, 2.5*inch, 3.5*inch, showBoundary=0)
+
+	Title = "ARCC Bighorn Storage Statement"
+	head_info = []
+	head_info.append(Paragraph(theDate01, styleH2))
+	head_info.append(Paragraph(Title, styleH1))
+	head_info.append(Paragraph("Project: " + account, styleN))
+	head_info.append(Paragraph("Principal Investigator: " + PrncplInvst, styleN))
+	HeaderFrame.addFromList(head_info, c)
+
+	projectData = getProjectData(theAccount,theDate02)
+	userData = getUsrData(theAccount,theDate02)
+
+	storageSummary_info = []
+	storageSummary_info.append(Paragraph("Storage Summary (%s)" 
+		% theDate01, styleH3))
+	storageSummary_table = Tools.storageTableout(theAccount,projectData,userData)
+	storageSummary_info.append(storageSummary_table)
+	StorageSummaryFrame.addFromList(storageSummary_info, c)
+
+	userList=[]
+	usageList=[]
+
+	for (user,blockUsage,filesUsage) in userData:
+		userList.append(user)
+		usageList.append(blockUsage)
+
+	usage_info = []
+	usage_chart = Tools.graphout_pie(usageList, userList, 2.5)
+	usage_info.append(Paragraph("Storage Usage", styleH3))
+	usage_info.append(usage_chart)
+	PieChartFrame.addFromList(usage_info, c)
+
+	legend_info = []
+	pieChartLegend = Tools.legendout(userList, isCPUH=False)
+	legend_info.append(pieChartLegend)
+	LegendFrame.addFromList(legend_info, c)
 
 	c.save()

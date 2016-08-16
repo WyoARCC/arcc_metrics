@@ -47,6 +47,12 @@ theDateYYYYmmdd = date.today().strftime("%Y-%m-%d") #YYYY-mm-dd format
 badGroups = ['bsa','taed','proteinstructureevol','cudaperfmodelling',
 	'gpucfdcomputing','rmacc','utahchpc','arcc','bc-201606','bc-201607']
 
+###############################################################################
+# Debugging purposes
+goodGroups = ['evolvingai']
+# end debugging
+###############################################################################
+
 # all groups with jobs ran on Mt. Moran
 accounts=GenAll(statementMonth)
 
