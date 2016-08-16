@@ -46,6 +46,7 @@ arcc_d.unbind()
 
 # Pull users out
 users = mtmoran[0][1]['memberUid']
+print mtmoran
 # Get the user information from the UWyo AD server in one request.
 uw_users = uwyo_d.searchByCN(users, uwyo_d.USER)
 l = [user.cn for user in uw_users]
@@ -87,23 +88,24 @@ if not includeZeros:
 
 
 # Plot the data
+plt.figure(figsize=(12,12))
 x = np.arange(len(collegeCount))
 rects = plt.bar(x, collegeCount.values(), width=0.5, align='center')
 plt.title('Number of Mt. Moran Users per College')
 plt.xlabel('College')
 plt.ylabel('Number of Users')
-plt.xticks(x, collegeCount.keys(), rotation=80)
+plt.xticks(x, collegeCount.keys(), rotation=80,)
+plt.tick_params(axis='x', top='off')
 plt.subplots_adjust(bottom=0.35)
-
 # Add the values to the top of the bars
 for rect in rects:
     h = rect.get_height()
     plt.text(rect.get_x() + rect.get_width()/2.,
-             1 + h,
+             .25 + h,
              '%d' % int(h),
              ha='center',
              va='bottom')
-
+plt.savefig('User_colleges.eps', format='eps', dpi=1000)
 plt.show()
 
 print collegeCount

@@ -133,16 +133,16 @@ print "Number of Active Users " + str(len(active_users))
 print "Number of Inactive Users: " + str(len(inactive_users))
 
 
-fig_size = plt.rcParams["figure.figsize"]
+#fig_size = plt.rcParams["figure.figsize"]
 
 # Prints: [8.0, 6.0]
 
 # Set figure width to 9 and height to 9
-fig_size[0] = 9
-fig_size[1] = 9
+#fig_size[0] = 15
+#fig_size[1] = 15
 
-plt.rcParams["figure.figsize"] = fig_size
-
+#plt.rcParams["figure.figsize"] = fig_size
+plt.figure(figsize=(7,7))
 
 # Generate the pi chart, with labels. autopct can take a function
 # as an argument and it passes the percent to it, and the percent
@@ -150,8 +150,12 @@ plt.rcParams["figure.figsize"] = fig_size
 plt.pie([len(active_users), len(inactive_users)],
         labels=["Active", "Inactive"], colors=["b", "g"],
         autopct=lambda(a): '{:g}'.format(a * len(users) / 100))
+plt.title("Active vs Inactive Users on Mount Moran", y=1.08)
 
-
-#plt.tight_layout()
-plt.legend()
+plt.axis('equal')
+#plt.rc('font', **{'size' : 250})
+#plt.legend(prop={'size':250})
+plt.legend(loc=4)
+plt.tight_layout()
+plt.savefig('Active_vs_inactive.eps', format='eps', dpi=1000)
 plt.show()
