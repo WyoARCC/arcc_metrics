@@ -77,6 +77,7 @@ else:
 
 for account in accounts:
 	if (activeGroups.__contains__(account) and\
+		goodGroups.__contains__(account) and\
 		not(badGroups.__contains__(account))):
 
 		uid = ipaShowTools.getPI(account) if args.ipa else ldapShowTools.getPI(account)

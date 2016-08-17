@@ -43,7 +43,7 @@ def legendout(labels, isCPUH=True): # labels is a list
 	legend.alignment = 'right'
 	legend.x = 0 if isCPUH else 0.25*inch
 	legend.y = 2.75*inch
-	legend.columnMaximum = 13 if isCPUH else 10
+	legend.columnMaximum = 25 if isCPUH else 10
 	colorNamePairs = []
 	
 	# ensure legend and pie chart coloring matches (similar loop in
@@ -69,12 +69,13 @@ def graphout_pie(data, labels, physicalSize): # data and labels are both lists o
 	pc.slices.strokeWidth = 0.5
 	
 	# ensure pie chart and legend coloring matches (similar loop in 
-	#	legendout method)
+	# legendout() method)
 	for i in range(len(labels)):
 		pc.slices[i].fillColor = colorList[i]
 
 	drawing.add(pc)
 	return drawing
+
 
 # Returns a drawing object of a bar chart
 def graphout_bar(CPUH_data, storage_data, labels):
@@ -91,6 +92,32 @@ def graphout_bar(CPUH_data, storage_data, labels):
 	bar.categoryAxis.categoryNames = labels
 	drawing.add(bar)
 	return drawing
+
+
+# Returns a drawing object of a bar chart
+# data should be of form [[user1data],[user2data],...],
+# labels is a list of dates (or months) that correlate to the data
+def graphout_stackedBar(data, labels):
+	drawing = Drawing(6*inch, 3.5*inch)
+	bar = VerticalBarChart()
+	bar.x = 50
+	bar.y = 50
+	bar.width = 4*inch
+	bar.height = 2.5*inch
+	bar.data = data
+	bar.categoryAxis.style='stacked'
+	bar.categoryAxis.labels.boxAnchor = 'ne'
+	bar.categoryAxis.labels.dx = -2
+	bar.categoryAxis.labels.dy = -2
+	bar.categoryAxis.labels.angle = 45
+	bar.categoryAxis.categoryNames = labels
+
+	for i in range(len(data)):
+		bar.bars[i].fillColor = colorList[i]
+	
+	drawing.add(bar)
+	return drawing
+
 
 # returns a table
 def computeTableout(data): # data is a list of tuples (each tuple is another line)

@@ -134,8 +134,7 @@ def GenReport(theAccount,PI,statementMonth):
 	CPUHFrame1 = Frame(5*inch, 7.25*inch, 1.5*inch, 1.75*inch, showBoundary=0)
 	CPUHFrame2 = Frame(5*inch, 5.5*inch, 1.5*inch, 1.75*inch, showBoundary=0)
 	LegendFrame = Frame(6.5*inch, 5.5*inch, inch, 3.5*inch, showBoundary=0)
-	ComputeTrendFrame = Frame(inch, 2.25*inch, 6.5*inch, 3.25*inch, showBoundary=0)
-	StorageSummaryFrame = Frame(inch, inch, 6.5*inch, 1.25*inch, showBoundary=0)
+	ComputeTrendFrame = Frame(inch, inch, 6.5*inch, 4.5*inch, showBoundary=0)
 
 
 	Title = "ARCC Mt Moran Usage Statement"
@@ -154,15 +153,15 @@ def GenReport(theAccount,PI,statementMonth):
 	ComputeSummaryFrame.addFromList(computeSummary_info, c)
 
 	monthlyCPUH_info = []
-	usage_chart = Tools.graphout_pie(finalMonthlyusage, finalUsers, 1.25)
+	mtMoranUsagePieChart = Tools.graphout_pie(finalMonthlyusage, finalUsers, 1.25)
 	monthlyCPUH_info.append(Paragraph("CPUH (month)", styleN))
-	monthlyCPUH_info.append(usage_chart)
+	monthlyCPUH_info.append(mtMoranUsagePieChart)
 	CPUHFrame1.addFromList(monthlyCPUH_info, c)
 
 	ytdCPUH_info = []
-	ytdUsage_chart = Tools.graphout_pie(finalYTDUsage, finalUsers, 1.25)
+	mtMoranYtdUsagePieChart = Tools.graphout_pie(finalYTDUsage, finalUsers, 1.25)
 	ytdCPUH_info.append(Paragraph("CPUH (ytd)", styleN))
-	ytdCPUH_info.append(ytdUsage_chart)
+	ytdCPUH_info.append(mtMoranYtdUsagePieChart)
 	CPUHFrame2.addFromList(ytdCPUH_info, c)
 
 	legend_info = []
@@ -175,17 +174,13 @@ def GenReport(theAccount,PI,statementMonth):
 	computeTrend_info.append(chart)
 	ComputeTrendFrame.addFromList(computeTrend_info, c)
 
-	storageSummary_info = []
-#	storageSummary_info.append(Paragraph('Storage Summary', styleN))
-#	StorageSummaryFrame.addFromList(storageSummary_info, c)
-
-	c.save() # This marks the end of the frist page of the .pdf document
+	c.save() # This marks the end of the first page of the .pdf document
 
 	# Starting the second page
 
 	
 	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
-	StorageSummaryFrame = Frame(0.5*inch, 2.5*inch, 5*inch, 6.5*inch, showBoundary=0)
+	StorageSummaryFrame = Frame(inch, 2.5*inch, 4.5*inch, 6.5*inch, showBoundary=0)
 	PieChartFrame = Frame(5.5*inch, 6*inch, 2.5*inch, 3*inch, showBoundary=0)
 	LegendFrame = Frame(5.5*inch, 2.5*inch, 2.5*inch, 3.5*inch, showBoundary=0)
 
@@ -215,9 +210,9 @@ def GenReport(theAccount,PI,statementMonth):
 		usageList.append(blockUsage)
 
 	usage_info = []
-	usage_chart = Tools.graphout_pie(usageList, userList, 2.5)
+	bighornStoragePieChart = Tools.graphout_pie(usageList, userList, 2.5)
 	usage_info.append(Paragraph("Storage Usage", styleH3))
-	usage_info.append(usage_chart)
+	usage_info.append(bighornStoragePieChart)
 	PieChartFrame.addFromList(usage_info, c)
 
 	legend_info = []
@@ -225,4 +220,44 @@ def GenReport(theAccount,PI,statementMonth):
 	legend_info.append(pieChartLegend)
 	LegendFrame.addFromList(legend_info, c)
 
-	c.save()
+	c.save() # This marks the end of the second page of the .pdf document
+
+	# Starting the third page
+
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
+	MonthlyStorageChartFrame = Frame(inch, 5*inch, 5.5*inch, 4*inch, showBoundary=0)
+	YtdStorageChartFrame = Frame(inch, inch, 5.5*inch, 4*inch, showBoundary=0)
+	LegendFrame = Frame(6.5*inch, inch, inch, 8*inch, showBoundary=0)
+
+	Title = "ARCC Bighorn Storage Statement (cont)"
+	head_info = []
+	head_info.append(Paragraph(theDate01, styleH2))
+	head_info.append(Paragraph(Title, styleH1))
+	head_info.append(Paragraph("Project: " + account, styleN))
+	head_info.append(Paragraph("Principal Investigator: " + PrncplInvst, styleN))
+	HeaderFrame.addFromList(head_info, c)
+
+	monthlyStorageChart_info=[]
+	# collect daily stats from the database
+	dailyData=getDailyData(theAccount,'2016-08-17')
+	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], dailyData[1])
+	monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
+		+"month of %s" % Months[statementMonth], styleN))
+	monthlyStorageChart_info.append(bighornStorageBarChart)
+	MonthlyStorageChartFrame.addFromList(monthlyStorageChart_info, c)
+
+#	ytdCPUH_info = []
+#	ytdUsage_chart = Tools.graphout_pie(finalYTDUsage, finalUsers, 1.25)
+#	ytdCPUH_info.append(Paragraph("CPUH (ytd)", styleN))
+#	ytdCPUH_info.append(ytdUsage_chart)
+#	CPUHFrame2.addFromList(ytdCPUH_info, c)
+	
+	storageLegend_info = []
+	storageLegend = Tools.legendout(userList)
+	legend_info.append(storageLegend)
+	LegendFrame.addFromList(legend_info, c)
+	
+
+
+
+	c.save() # This marks the end of the third page of the .pdf document
