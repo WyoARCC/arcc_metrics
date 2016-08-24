@@ -23,12 +23,10 @@ def createLDAPObj(info, ldap_srv):
 
     return types[objectCat[0]](info, ldap_srv)
 
-
 def createLDAPObjDict(objs):
     """Creates a dictionary from a list of LDAP Obj's. The keys are the cn
     of the object, the value is the object."""
     return {obj.cn: obj for obj in objs}
-
 
 class UWyoLDAP(object):
     """Uwyo LDAP object. Connects to the ldap server and is used for
@@ -39,7 +37,7 @@ class UWyoLDAP(object):
     USERS = USER
     PERSON = USER
     PERSONS = PERSON
-    GROUP = 'Group'
+    GROUP = 'Group' 
     GROUPS = GROUP
     COMPUTER = 'Computer'
     COMPUTERS = COMPUTER
@@ -54,6 +52,18 @@ class UWyoLDAP(object):
     def unbind(self):
         self.srv.unbind()
 
+    def searchByCNJustInfo(self, cns, cn_type, attrs=None):
+        base = self.BASE
+        filt = '(|' + ''.join('{})'.format('(CN=' + n) for n in cns) + ')'
+        filt = '(&(objectCategory=' + cn_type + ')' + filt + ')'
+
+        if attrs and type(attrs) is not list:
+            print type(attrs)
+            attrs = [attrs]
+
+        return self.srv.search_s(base, ldap.SCOPE_SUBTREE, filt, attrs)
+        
+
     def searchByCN(self, cns, cn_type):
         """Search for stuff by given cn's. Result is a list of LDAPObj objects.
         Type must be UWyoLDAP.USERS or UWyoLDAP.GROUPS. Computers aren't
@@ -62,9 +72,9 @@ class UWyoLDAP(object):
 
         if type(cns) is not list:
             cns = [cns]
-
+       
         cn = cns[:]
-
+        
         objs = []
         for n in cn:
             h = '@' + cn_type + '@' + n
@@ -75,13 +85,25 @@ class UWyoLDAP(object):
         if cn == []:
             return objs
         else:
-            base = self.BASE
-            filt = '(|' + ''.join('{})'.format('(CN=' + n) for n in cn) + ')'
-            filt = '(&(objectCategory=' + cn_type + ')' + filt + ')'
-            results = self.srv.search_s(base, ldap.SCOPE_SUBTREE, filt)
-
+            results = self.searchByCNJustInfo(cn, cn_type)
             for result in results:
                 if result[0] is not None:
+                    # Groups with large amounts of users have the users given 
+                    # in ranges. This handles that.
+                    if 'member' in result[1]:
+                        members_r =  [k for k in result[1].keys() if 'range' in k.lower() and 'member' in k.lower()]
+                        members_r = result[1][members_r[0]]
+                        if members_r:
+                            range_inc = len(members_r)
+                            result[1]['member'].extend(members_r)
+                            range_v = range_inc
+                        while len(members_r) == range_inc:
+                            attr = 'member;range=' + str(range_v) + '-' + str((range_v+range_inc)-1)
+                            add_info = self.searchByCNJustInfo(cn, cn_type, [attr])
+                            members_r =  add_info[0][1][add_info[0][1].keys()[0]]
+                            range_v += range_inc
+                            result[1]['member'].extend(members_r)
+
                     obj = createLDAPObj(result, self)
                     self.LDAPObjs['@' + cn_type + '@' + obj.cn] = obj
                     objs.append(obj)
@@ -99,8 +121,10 @@ class LDAPObj(object):
 
         if self.info[1]['gidNumber'][0]:
             self.gid = self.info[1]['gidNumber'][0]
-        if self.info[1]['description'][0]:
+        try:
             self.description = self.info[1]['description'][0]
+        except:
+            pass
 
         # Just a list of CN's.
         if 'memberOf' in info[1]:
@@ -125,13 +149,13 @@ class LDAPUser(LDAPObj):
         self.isRetired = False
         if 'UW Employees' in self.memberOf:
             self.isEmployee = True
-            if self.departments and ('IT-Research Support' in self.departments
-                                or 'IT/Research Support' in self.departments):
+            if self.departments and ('IT-Research Support' in self.departments \
+                    or 'IT/Research Support' in self.departments):
                 self.isARCCEmployee = True
         if 'UW Faculty' in self.memberOf \
                 or 'UW Academic Professionals' in self.memberOf:
             self.isFaculty = True
-        if 'UWSTUDENTS' in self.memberOf:
+        if 'Enrolled Students' in self.memberOf:
             self.isStudent = True
         if 'Retired' in self.memberOf:
             self.isRetired = True
@@ -154,13 +178,12 @@ class LDAPUser(LDAPObj):
 
 
 class LDAPGroup(LDAPObj):
-    """LDAP group. Currently doesn't handle very large groups, because the
-    member attribute gets split up automatically by the AD server, and multiple
-    requests have to be made to the server to get all of the members"""
+    """LDAP group."""
     def __init__(self, info, ldap_srv):
         super(LDAPGroup, self).__init__(info, ldap_srv)
         self.members = {}
-        # Just a list of CN's.
+        # Create dictionary of CN's and their corresponding DN's
+        print info[0]
         if 'member' in info[1]:
             for obj in info[1]['member']:
                 self.members[extractCN(obj)] = obj
