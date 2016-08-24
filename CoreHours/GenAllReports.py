@@ -27,19 +27,45 @@ parser.add_argument("-m", "--month", type=int,
 	+" report will be generated for, if this option is not selected the most"\
 	+" recent month will be used")
 
+parser.add_argument("-Y", "--year", type=int,
+	help="the year, entered in 4 digit format (e.g. 2016), in which the usage"\
+	+" report will be generated for, if this option is not selected the"\
+	+" current year will be used.  Note: No reports can be generated prior to"\
+	+" 2016.")
+
 args = parser.parse_args()
 
 if args.month == None or args.month >= int(date.today().strftime("%m")):
-	statementMonth = int(date.today().strftime("%m"))-1
+	if args.year == None or args.year >= int(date.today().strftime("%Y")) or \
+	args.year < 2016:
+		statementMonth = int(date.today().strftime("%m"))-1
+	else:
+		statementMonth = args.month
 else:
 	statementMonth = args.month
 
+if args.year == None or args.year > int(date.today().strftime("%Y")):
+	statementYear = int(date.today().strftime("%Y"))
+else:
+	statementYear = args.year
+	if statementYear < 2016:
+		statementYear = 2016 # no reports generated prior to 2016
+
 # in the case the current month is Jan, the statement will be generated for Dec
+# of the previous year
 if statementMonth == 0:
 	statementMonth = 12
+	statementYear = int(date.today().strftime("%Y"))-1
 
 Months = {1:'Jan', 2:'Feb', 3:'Mar', 4:'April', 5:'May', 6:'June', 7:'July', 
 			8:'Aug', 9:'Sept', 10:'Oct', 11:'Nov', 12:'Dec'}
+
+###############################################################################
+# debugging
+# print ('statementMonth: %s' % Months[statementMonth])
+# print ('statementYear: %d' % statementYear)
+# end debugging
+###############################################################################
 
 theDateYYYYmmdd = date.today().strftime("%Y-%m-%d") #YYYY-mm-dd format
 
@@ -49,7 +75,7 @@ badGroups = ['bsa','taed','proteinstructureevol','cudaperfmodelling',
 
 ###############################################################################
 # Debugging purposes
-goodGroups = ['evolvingai']
+goodGroups = ['arccinterns','evolvingai']
 # end debugging
 ###############################################################################
 
@@ -77,13 +103,14 @@ else:
 
 for account in accounts:
 	if (activeGroups.__contains__(account) and\
-		goodGroups.__contains__(account) and\
 		not(badGroups.__contains__(account))):
-
+		
 		uid = ipaShowTools.getPI(account) if args.ipa else ldapShowTools.getPI(account)
 		fullName = ipaShowTools.getName(uid) if args.ipa else ldapShowTools.getName(uid)
 		email = ipaShowTools.getEmail(uid) if args.ipa else ldapShowTools.getEmail(uid)
-		GenReport(account, fullName, statementMonth)
+		
+		GenReport(account, fullName, statementMonth,statementYear)
+		
 
 ###############################################################################
 # debugging section, remove from final version

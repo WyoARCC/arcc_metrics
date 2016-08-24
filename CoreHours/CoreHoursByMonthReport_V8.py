@@ -13,7 +13,7 @@ from reportlab.lib.enums import TA_RIGHT
 from mysqlTools import *
 
 
-def GenReport(theAccount,PI,statementMonth):
+def GenReport(theAccount,PI,statementMonth,statementYear):
 	Months = {1:'Jan', 2:'Feb', 3:'Mar', 4:'April', 5:'May', 6:'June', 7:'July', 
 				8:'Aug', 9:'Sept', 10:'Oct', 11:'Nov', 12:'Dec'}
 
@@ -180,9 +180,9 @@ def GenReport(theAccount,PI,statementMonth):
 
 	
 	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
-	StorageSummaryFrame = Frame(inch, 2.5*inch, 4.5*inch, 6.5*inch, showBoundary=0)
-	PieChartFrame = Frame(5.5*inch, 6*inch, 2.5*inch, 3*inch, showBoundary=0)
-	LegendFrame = Frame(5.5*inch, 2.5*inch, 2.5*inch, 3.5*inch, showBoundary=0)
+	StorageSummaryFrame = Frame(inch, inch, 4.5*inch, 8*inch, showBoundary=0)
+	PieChartFrame = Frame(5.5*inch, 6.5*inch, 2*inch, 2.5*inch, showBoundary=0)
+	LegendFrame = Frame(5.5*inch, inch, 2*inch, 5.5*inch, showBoundary=0)
 
 	Title = "ARCC Bighorn Storage Statement"
 	head_info = []
@@ -192,8 +192,8 @@ def GenReport(theAccount,PI,statementMonth):
 	head_info.append(Paragraph("Principal Investigator: " + PrncplInvst, styleN))
 	HeaderFrame.addFromList(head_info, c)
 
-	projectData = getProjectData(theAccount,theDate02)
-	userData = getUsrData(theAccount,theDate02)
+	projectData = getProjectData(theAccount,statementMonth,statementYear)
+	userData = getUsrData(theAccount,statementMonth,statementYear)
 
 	storageSummary_info = []
 	storageSummary_info.append(Paragraph("Storage Summary (%s)" 
@@ -210,7 +210,7 @@ def GenReport(theAccount,PI,statementMonth):
 		usageList.append(blockUsage)
 
 	usage_info = []
-	bighornStoragePieChart = Tools.graphout_pie(usageList, userList, 2.5)
+	bighornStoragePieChart = Tools.graphout_pie(usageList, userList, 2)
 	usage_info.append(Paragraph("Storage Usage", styleH3))
 	usage_info.append(bighornStoragePieChart)
 	PieChartFrame.addFromList(usage_info, c)
@@ -239,18 +239,21 @@ def GenReport(theAccount,PI,statementMonth):
 
 	monthlyStorageChart_info=[]
 	# collect daily stats from the database
-	dailyData=getDailyData(theAccount,'2016-08-17')
-	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], dailyData[1])
+	dailyData=getDailyData(theAccount,statementMonth,statementYear)
+	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], dailyData[1], 6, 3.5)
 	monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
 		+"month of %s" % Months[statementMonth], styleN))
 	monthlyStorageChart_info.append(bighornStorageBarChart)
 	MonthlyStorageChartFrame.addFromList(monthlyStorageChart_info, c)
 
-#	ytdCPUH_info = []
-#	ytdUsage_chart = Tools.graphout_pie(finalYTDUsage, finalUsers, 1.25)
-#	ytdCPUH_info.append(Paragraph("CPUH (ytd)", styleN))
-#	ytdCPUH_info.append(ytdUsage_chart)
-#	CPUHFrame2.addFromList(ytdCPUH_info, c)
+	ytdStorageChart_info = []
+	# collect monthly stats from the database
+	monthlyData=getMonthlyData(theAccount,statementMonth,statementYear)
+	ytdBighornStorageBarChart=Tools.graphout_stackedBar(monthlyData[0], monthlyData[1], 6, 3.5)
+	ytdStorageChart_info.append(Paragraph("YTD Monthly Storage Summary for "\
+		+"year of %d" % statementYear, styleN))
+	ytdStorageChart_info.append(ytdBighornStorageBarChart)
+	YtdStorageChartFrame.addFromList(ytdStorageChart_info, c)
 	
 	storageLegend_info = []
 	storageLegend = Tools.legendout(userList)

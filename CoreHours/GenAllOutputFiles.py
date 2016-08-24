@@ -18,4 +18,5 @@ def GenAll(statementMonth):
 			f=open(account+'_'+Months[i]+'.out','a')
 			f.write(job+'\n')
 			f.close()
+	
 	return list(accounts)

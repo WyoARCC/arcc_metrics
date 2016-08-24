@@ -14,10 +14,11 @@
 
 # Libraries
 from reportlab.platypus import *
-from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.shapes import Drawing, Circle
 from reportlab.graphics.charts.piecharts import Pie
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.charts.legends import Legend
+from reportlab.graphics.charts.textlabels import Label
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 
@@ -36,7 +37,7 @@ colorList = [colors.purple, colors.yellow, colors.slategrey, colors.orange,
 			colors.rosybrown]
 
 
-# Returns a drawing object of the legend for the pie charts
+# Returns a drawing object of the legend for the charts
 def legendout(labels, isCPUH=True): # labels is a list
 	drawing = Drawing(inch, 3*inch) if isCPUH else Drawing(2.5*inch, 3*inch)
 	legend = Legend()
@@ -46,8 +47,8 @@ def legendout(labels, isCPUH=True): # labels is a list
 	legend.columnMaximum = 25 if isCPUH else 10
 	colorNamePairs = []
 	
-	# ensure legend and pie chart coloring matches (similar loop in
-	#	graphout_pie method)
+	# ensure legend and chart color coding matches (similar loop in
+	# graphout_pie, graphout_bar and graphout_stackedBar methods)
 	for i in range(len(labels)):
 		colorNamePairs.append([colorList[i],labels[i]])
 	
@@ -68,8 +69,7 @@ def graphout_pie(data, labels, physicalSize): # data and labels are both lists o
 	pc.labels = None
 	pc.slices.strokeWidth = 0.5
 	
-	# ensure pie chart and legend coloring matches (similar loop in 
-	# legendout() method)
+	# ensure pie chart and legend coloring matches
 	for i in range(len(labels)):
 		pc.slices[i].fillColor = colorList[i]
 
@@ -90,20 +90,27 @@ def graphout_bar(CPUH_data, storage_data, labels):
 	bar.categoryAxis.labels.dy = -2
 	bar.categoryAxis.labels.angle = 45
 	bar.categoryAxis.categoryNames = labels
+	
+	# ensure bar chart and legend coloring matches
+	for i in range(len(data)):
+		bar.bars[i].fillColor = colorList[i]
+
 	drawing.add(bar)
 	return drawing
 
 
 # Returns a drawing object of a bar chart
-# data should be of form [[user1data],[user2data],...],
+# data should be of form [[user1data],[user2data],...,[userNdata]]
+# [userdata] = [date1data,date2data,...,dateNdata]
 # labels is a list of dates (or months) that correlate to the data
-def graphout_stackedBar(data, labels):
-	drawing = Drawing(6*inch, 3.5*inch)
+# labels = [date1,date2,...,dateN]
+def graphout_stackedBar(data, labels, X, Y):
+	drawing = Drawing(X*inch, Y*inch)
 	bar = VerticalBarChart()
 	bar.x = 50
 	bar.y = 50
-	bar.width = 4*inch
-	bar.height = 2.5*inch
+	bar.width = (X-2)*inch
+	bar.height = (Y-1)*inch
 	bar.data = data
 	bar.categoryAxis.style='stacked'
 	bar.categoryAxis.labels.boxAnchor = 'ne'
@@ -112,22 +119,33 @@ def graphout_stackedBar(data, labels):
 	bar.categoryAxis.labels.angle = 45
 	bar.categoryAxis.categoryNames = labels
 
+	# ensure bar chart and legend coloring matches
 	for i in range(len(data)):
 		bar.bars[i].fillColor = colorList[i]
 	
+	yLabel = Label()
+	yLabel.setOrigin(0, 50)
+	yLabel.boxAnchor = 'c'
+	yLabel.angle = 90
+	yLabel.setText('Data Storage [GB]')
+	yLabel.fontSize=16
+	yLabel.dy = 1.25*inch
+	drawing.add(yLabel)
 	drawing.add(bar)
 	return drawing
 
 
-# returns a table
+# returns a table that summarizes Mt. Moran usage for the month and ytd
 def computeTableout(data): # data is a list of tuples (each tuple is another line)
 	header = [['User', 'Jobs(m)', 'Jobs(YTD)', 'CPUH(m)', 'CPUH(YTD)']]
 	
+	# variables to hold summation totals of all categories
 	totalJobs_month = 0
 	totalJobs_YTD = 0
 	totalCPU_month = 0
 	totalCPU_YTD = 0
 
+	# loop to sum totals
 	for i in range(len(data)):
 		totalJobs_month += data[i][1]
 		totalJobs_YTD += data[i][2]
