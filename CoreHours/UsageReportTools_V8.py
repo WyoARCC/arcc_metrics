@@ -8,7 +8,7 @@
 # The reportlab library for python will need to be installed first.
 # 
 # 
-# 
+# Dependencies:
 ###############################################################################
 
 
@@ -58,13 +58,13 @@ def legendout(labels, isCPUH=True): # labels is a list
 
 
 # Returns a drawing object of a pie graph
-def graphout_pie(data, labels, physicalSize): # data and labels are both lists of same size
-	drawing = Drawing(physicalSize*inch, physicalSize*inch)
+def graphout_pie(data, labels, sizeOfDrawing): # data and labels are both lists of same size
+	drawing = Drawing(sizeOfDrawing*inch, sizeOfDrawing*inch)
 	pc = Pie()
 	pc.x = .125*inch
 	pc.y = .125*inch
-	pc.width = (physicalSize-0.25)*inch
-	pc.height = (physicalSize-0.25)*inch
+	pc.width = (sizeOfDrawing-0.25)*inch
+	pc.height = (sizeOfDrawing-0.25)*inch
 	pc.data = data
 	pc.labels = None
 	pc.slices.strokeWidth = 0.5
@@ -78,8 +78,8 @@ def graphout_pie(data, labels, physicalSize): # data and labels are both lists o
 
 
 # Returns a drawing object of a bar chart
-def graphout_bar(CPUH_data, storage_data, labels):
-	drawing = Drawing(6*inch, 1.5*inch)
+def graphout_bar(CPUH_data, storage_data, labels, X, Y):
+	drawing = Drawing(X*inch, Y*inch)
 	bar = VerticalBarChart()
 	bar.x = 50
 	bar.y = 10
@@ -112,6 +112,7 @@ def graphout_stackedBar(data, labels, X, Y):
 	bar.width = (X-2)*inch
 	bar.height = (Y-1)*inch
 	bar.data = data
+	bar.bars.strokeWidth = 0
 	bar.categoryAxis.style='stacked'
 	bar.categoryAxis.labels.boxAnchor = 'ne'
 	bar.categoryAxis.labels.dx = -2
@@ -123,8 +124,9 @@ def graphout_stackedBar(data, labels, X, Y):
 	for i in range(len(data)):
 		bar.bars[i].fillColor = colorList[i]
 	
+	# Create a title for the y-axis
 	yLabel = Label()
-	yLabel.setOrigin(0, 50)
+	yLabel.setOrigin(0, 50) # for reference, the graph origin is (50, 50)
 	yLabel.boxAnchor = 'c'
 	yLabel.angle = 90
 	yLabel.setText('Data Storage [GB]')
@@ -156,6 +158,7 @@ def computeTableout(data): # data is a list of tuples (each tuple is another lin
 				totalCPU_YTD]]
 	t=Table(header + data + totals)
 
+	# format the table (bold, underline, etc.)
 	t.setStyle(TableStyle([('ALIGN',(1,1),(4,len(data)+1),'RIGHT'),
 		('FONT',(0,len(data)+1),(4,len(data)+1),'Helvetica-Bold'),
 		('LINEBELOW',(0,0),(4,0),1,colors.black),
@@ -165,24 +168,29 @@ def computeTableout(data): # data is a list of tuples (each tuple is another lin
 	return t
 
 
+# method that takes a float as an input and returns a float (with two decimal
+# places).  The calculation converts KB to GB.
 def kbToGb(num):
 	return '%.2f' % ((num*(2**10))/float(2**30))
 
-	# returns a table
+
+	# returns a table that summarizes disk space usage on Bighorn
 def storageTableout(account,projectData,userData): # 
-	header = [['User', 'Usage(GB)', 'Quota(GB)', '% Used', 'File Usage']]
+	header = [['User', 'Usage(GB)', 'Quota(GB)', '% Used', 'File Count']]
 	percentage = '%.2f' % (100*projectData[0]/float(projectData[1]))
-	
-	projectTableEntry = [[account,kbToGb(projectData[0]),
-		kbToGb(projectData[1]),percentage,(projectData[2]-1)]]
 	
 	userTableEntry = []
 	for (user,blockUsage,filesUsage) in userData:
 		percentage = '%.2f' % (100*blockUsage/float(projectData[1]))
 		userTableEntry.append([user,kbToGb(blockUsage),0,percentage,filesUsage])
 
+	percentage = '%.2f' % (100*projectData[0]/float(projectData[1]))
+	projectTableEntry = [[account,kbToGb(projectData[0]),
+		kbToGb(projectData[1]),percentage,(projectData[2]-1)]]
+	
 	t=Table(header + userTableEntry + projectTableEntry)
 
+	# format the table (bold, underline, etc.)
 	t.setStyle(TableStyle([('ALIGN',(1,1),(4,len(userData)+1),'RIGHT'),
 		('FONT',(0,len(userData)+1),(4,len(userData)+1),'Helvetica-Bold'),
 		('LINEBELOW',(0,0),(4,0),1,colors.black),

@@ -1,3 +1,18 @@
+###############################################################################
+# GenAllReports.py
+# Jeremy Clay
+# Aug 20, 2016
+# 
+# This file serves as the main function call.  Running this file will generate
+# a .pdf file that reports the CPU usage of Mt. Moran as well as the amount of
+# disk space that is being consumed on Bighorn for every active account on Mt.
+# Moran.  The .pdf file will automatically be attached to a very short email
+# and sent to the principle investigator of each account.
+# 
+# Dependencies:	
+###############################################################################
+
+
 from datetime import date
 import UsageReportTools_V8 as Tools
 import matplotlibToReportlab as mtr
@@ -129,12 +144,12 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	styleH3.fontName='Helvetica-Bold'
 	styleH3.fontSize=12
 
-	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
-	ComputeSummaryFrame = Frame(inch, 5.5*inch, 4*inch, 3.5*inch, showBoundary=0)
-	CPUHFrame1 = Frame(5*inch, 7.25*inch, 1.5*inch, 1.75*inch, showBoundary=0)
-	CPUHFrame2 = Frame(5*inch, 5.5*inch, 1.5*inch, 1.75*inch, showBoundary=0)
-	LegendFrame = Frame(6.5*inch, 5.5*inch, inch, 3.5*inch, showBoundary=0)
-	ComputeTrendFrame = Frame(inch, inch, 6.5*inch, 4.5*inch, showBoundary=0)
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=1)
+	ComputeSummaryFrame = Frame(inch, 5.5*inch, 4*inch, 3.5*inch, showBoundary=1)
+	CPUHFrame1 = Frame(5*inch, 7.25*inch, 1.5*inch, 1.75*inch, showBoundary=1)
+	CPUHFrame2 = Frame(5*inch, 5.5*inch, 1.5*inch, 1.75*inch, showBoundary=1)
+	LegendFrame = Frame(6.5*inch, 5.5*inch, inch, 3.5*inch, showBoundary=1)
+	ComputeTrendFrame = Frame(inch, inch, 6.5*inch, 4.5*inch, showBoundary=1)
 
 
 	Title = "ARCC Mt Moran Usage Statement"
@@ -179,10 +194,10 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	# Starting the second page
 
 	
-	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
-	StorageSummaryFrame = Frame(inch, inch, 4.5*inch, 8*inch, showBoundary=0)
-	PieChartFrame = Frame(5.5*inch, 6.5*inch, 2*inch, 2.5*inch, showBoundary=0)
-	LegendFrame = Frame(5.5*inch, inch, 2*inch, 5.5*inch, showBoundary=0)
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=1)
+	StorageSummaryFrame = Frame(inch, inch, 4.5*inch, 8*inch, showBoundary=1)
+	PieChartFrame = Frame(5.5*inch, 6.5*inch, 2*inch, 2.5*inch, showBoundary=1)
+	LegendFrame = Frame(5.5*inch, inch, 2*inch, 5.5*inch, showBoundary=1)
 
 	Title = "ARCC Bighorn Storage Statement"
 	head_info = []
@@ -200,6 +215,13 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 		% theDate01, styleH3))
 	storageSummary_table = Tools.storageTableout(theAccount,projectData,userData)
 	storageSummary_info.append(storageSummary_table)
+	# check to see if project has used more than 80% of its storage space, if
+	# so then report it
+	percentage = float('%.2f' % (100*projectData[0]/float(projectData[1])))
+	print ("percentage used: %.2f" % percentage) 
+	if percentage > 80:
+		warning = "Warning, %s is currently using %.2f percent of its storage quota!  Consider moving unnecessary files to a different storage location." % (theAccount,percentage)
+		storageSummary_info.append(Paragraph(warning, styleH3))
 	StorageSummaryFrame.addFromList(storageSummary_info, c)
 
 	userList=[]
@@ -224,10 +246,10 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 
 	# Starting the third page
 
-	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
-	MonthlyStorageChartFrame = Frame(inch, 5*inch, 5.5*inch, 4*inch, showBoundary=0)
-	YtdStorageChartFrame = Frame(inch, inch, 5.5*inch, 4*inch, showBoundary=0)
-	LegendFrame = Frame(6.5*inch, inch, inch, 8*inch, showBoundary=0)
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=1)
+	MonthlyStorageChartFrame = Frame(inch, 5*inch, 5.5*inch, 4*inch, showBoundary=1)
+	YtdStorageChartFrame = Frame(inch, inch, 5.5*inch, 4*inch, showBoundary=1)
+	LegendFrame = Frame(6.5*inch, inch, inch, 8*inch, showBoundary=1)
 
 	Title = "ARCC Bighorn Storage Statement (cont)"
 	head_info = []
@@ -241,8 +263,10 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	# collect daily stats from the database
 	dailyData=getDailyData(theAccount,statementMonth,statementYear)
 	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], dailyData[1], 6, 3.5)
+	# monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
+	# 	+"month of %s, %s" % (Months[statementMonth],statementYear), styleN))
 	monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
-		+"month of %s" % Months[statementMonth], styleN))
+		+"month of %s, %s" % ('Aug',statementYear), styleH3)) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 	monthlyStorageChart_info.append(bighornStorageBarChart)
 	MonthlyStorageChartFrame.addFromList(monthlyStorageChart_info, c)
 
@@ -251,7 +275,7 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	monthlyData=getMonthlyData(theAccount,statementMonth,statementYear)
 	ytdBighornStorageBarChart=Tools.graphout_stackedBar(monthlyData[0], monthlyData[1], 6, 3.5)
 	ytdStorageChart_info.append(Paragraph("YTD Monthly Storage Summary for "\
-		+"year of %d" % statementYear, styleN))
+		+"year of %d" % statementYear, styleH3))
 	ytdStorageChart_info.append(ytdBighornStorageBarChart)
 	YtdStorageChartFrame.addFromList(ytdStorageChart_info, c)
 	
