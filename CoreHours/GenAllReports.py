@@ -12,6 +12,9 @@
 # and sent to the principle investigator of each account.
 # 
 # Dependencies:	
+#
+# Updates:
+#		2016-09-14 JAC added code to archive the .pdf files on local machine
 ###############################################################################
 
 
@@ -107,17 +110,21 @@ print 'Generating monthly statements for the month of %s' % Months[statementMont
 # end debugging
 ###############################################################################
 
+
+
 if args.ipa:
 	print 'Using ipa command.'
 else:
 	print 'Using ldapsearch command.'
+
+# variable to store the path of the archive folder
+archiveFolder = '/home/jclay6/arcc_metrics/Reports/mtmoran/'
 
 # loop through all of the accounts and call the GenReport() method on all
 # that are active.  We also do not want to generate reports for a few select
 # accounts, so we also check against the list 'badGroups'
 for account in accounts:
 	if (activeGroups.__contains__(account) and\
-		goodGroups.__contains__(account) and\
 		not(badGroups.__contains__(account))):
 		
 		# using either ipa or ldap commands, set local variables uid, fullName,
@@ -127,6 +134,13 @@ for account in accounts:
 		email = ipaShowTools.getEmail(uid) if args.ipa else ldapShowTools.getEmail(uid)
 		
 		GenReport(account, fullName, statementMonth,statementYear)
+
+		# Archive the report in:
+		# /home/jclay6/arcc_metrics/Reports/mtmoran/<statementYear>/<account>/reportname.pdf
+		if not os.path.exists(archiveFolder+str(statementYear)+'/'+account):
+			os.makedirs(archiveFolder+str(statementYear)+'/'+account)
+
+		os.system('cp '+account+'*.pdf '+archiveFolder+str(statementYear)+'/'+account+'/')
 		
 
 ###############################################################################
@@ -136,34 +150,30 @@ for account in accounts:
 		print 'PI: %s, %s' % (uid, fullName)
 		print 'Email: %s\n' % email
 
-		myEmail = 'jclay6@uwyo.edu'
+		# myEmail = 'jclay6@uwyo.edu'
 
 		# cc line for bash command, should be pasted after the line beginning
 		# with +"-r and before the line beginning with +myEmail\
+		#	+"-c arcc-info@uwyo.edu "\
 		#			+"-c ksodhi@uwyo.edu,ceastma2@uwyo.edu "\
 
-		# bashCommand="mail -s 'Mt Moran/Bighorn Usage Report for "+account+"' "\
+		# bashCommand="mail -s 'Mt Moran Usage Report for "+account+"' "\
 		# 	+"-a "+account+"_report_"+theDateYYYYmmdd+".pdf "\
-		# 	+"-r jclay6@uwyo.edu "\
-		# 	+"-c arcc-info@uwyo.edu "\
+		# 	+"-r arcc-info@uwyo.edu "\
 		# 	+myEmail\
-		# 	+" <<< 'ARCC staff,\n\nPlease review this email and attached"\
-		# 	+" .pdf document that will be emailed out tomorrow to all PIs. "\
-		# 	+" I appreciate any feedback that you have on either.  Thanks for"\
-		# 	+" your help.\n\nJeremy Clay\nIntern - ARCC"\
-		# 	+" \n\nDear "+fullName+",\n\n\tWe at ARCC hope that our"\
+		# 	+" <<< 'Dear "+fullName+",\n\n\tWe at ARCC hope that our"\
 		# 	+" services, including the use of Mt. Moran, have been beneficial"\
-		# 	+" to you and your research team.  Attached you will find a"\
-		# 	+" monthly usage statement for the group, "+account+".  Many of"\
-		# 	+" the principal investigators replied to this email last month"\
+		# 	+" to you and your research team.  Attached is a"\
+		# 	+" monthly usage statement for the "+account+" group.  Last month,"\
+		# 	+" many of the principal investigators replied to a similar email"\
 		# 	+" with suggestions on how to make this report more useful to"\
-		# 	+" them and their investigative team.  In reponse to these"\
+		# 	+" them and their investigative teams.  In reponse to these"\
 		# 	+" requests, two additional pages have been added to the report"\
-		# 	+" that reflect the storage usage by the group on the Bighorn"\
-		# 	+" file storage cluster.  With enough feedback from you principal"\
-		# 	+" investigators, this report will evolve into the tool that you"\
-		# 	+" need it to be.  You may reply to"\
-		# 	+" this email with questions or comments.\n\nGeneral ARCC"\
+		# 	+" that reflect the group storage usage on the Bighorn cluster. "\
+		# 	+" With enough feedback from principal investigators such as"\
+		# 	+" yourself, this report will evolve into a tool more useful for"\
+		# 	+" all ARCC PIs.  Please reply to"\
+		# 	+" this email with any questions or comments.\n\nGeneral ARCC"\
 		# 	+" questions can also be emailed to arcc-info@uwyo.edu and"\
 		# 	+" service requests may be opened by emailing arcc-help@uwyo.edu."\
 		# 	+"\n\nThe ARCC Team'"
@@ -180,7 +190,7 @@ for account in accounts:
 		# bashCommand="mail -s 'Mt Moran Usage Report for "+account+"' "\
 		# 	+"-a "+account+"_report_"+theDateYYYYmmdd+".pdf "\
 		# 	+"-r arcc-info@uwyo.edu "\
-		# 	+"-b arcc-admin@uwyo.edu,Jared.Baker@uwyo.edu "\
+		# 	+"-b arcc-admin@uwyo.edu "\
 		# 	+email\
 		# 	+" <<< 'Dear "+fullName+",\n\n\tWe at ARCC hope that our"\
 		# 	+" services, including the use of Mt. Moran, have been beneficial"\
@@ -190,10 +200,10 @@ for account in accounts:
 		# 	+" with suggestions on how to make this report more useful to"\
 		# 	+" them and their investigative teams.  In reponse to these"\
 		# 	+" requests, two additional pages have been added to the report"\
-		# 	+" that reflect the group's storage usage on the Bighorn cluster. "\
+		# 	+" that reflect the group storage usage on the Bighorn cluster. "\
 		# 	+" With enough feedback from principal investigators such as"\
 		# 	+" yourself, this report will evolve into a tool more useful for"\
-		# 	+" all ARCC PI's.  Please reply to"\
+		# 	+" all ARCC PIs.  Please reply to"\
 		# 	+" this email with any questions or comments.\n\nGeneral ARCC"\
 		# 	+" questions can also be emailed to arcc-info@uwyo.edu and"\
 		# 	+" service requests may be opened by emailing arcc-help@uwyo.edu."\
@@ -207,7 +217,4 @@ for i in range(1,statementMonth+1):
 	bashCommand = 'rm *'+Months[i]+'.out'
 	os.system(bashCommand)
 
-# create a monthly directory to archive the .pdf report files and archive them
-os.system('mkdir '+str(statementYear)+Months[statementMonth]+'Reports')
-os.system('mv *_report_'+theDateYYYYmmdd+'.pdf '\
-	+str(statementYear)+Months[statementMonth]+'Reports/')
+os.system('rm *.pdf')

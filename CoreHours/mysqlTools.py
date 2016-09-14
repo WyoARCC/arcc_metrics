@@ -68,8 +68,8 @@ def zeroPadNewUsers(storageDict,statementMonth,statementYear):
 
 	# loop through all users as of the last day of the statement month
 	# see getQueryDate() method
-	# for user in storageDict[Months[statementMonth]][getQueryDate(statementMonth,statementYear)].keys():
-	for user in storageDict[Months[statementMonth]]['2016-08-24'].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+	for user in storageDict[Months[statementMonth]][getQueryDate(statementMonth,statementYear)].keys():
+	# for user in storageDict[Months[statementMonth]]['2016-08-24'].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 		currentUsers.append(user)
 	currentUsers.sort() # alphabetize list of users
 
@@ -106,8 +106,8 @@ def removeDeletedUsers(storageDict,statementMonth,statementYear):
 		if Months[i] in storageDict:
 			for day in storageDict[Months[i]].keys():
 				for userInQuestion in storageDict[Months[i]][day].keys():
-					# if userInQuestion not in storageDict[Months[statementMonth]][getQueryDate(statementMonth,statementYear)].keys():
-					if userInQuestion not in storageDict[Months[statementMonth]][date.today().strftime('%Y-%m-%d')].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+					if userInQuestion not in storageDict[Months[statementMonth]][getQueryDate(statementMonth,statementYear)].keys():
+					# if userInQuestion not in storageDict[Months[statementMonth]][date.today().strftime('%Y-%m-%d')].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 						del storageDict[Months[i]][day][userInQuestion]
 	return storageDict
 
@@ -139,7 +139,7 @@ def getProjectData(theAccount, statementMonth, statementYear):
 		#######################################################################
 		# Until September 1, 2016 the date to query has to be the current day
 		# This section can be removed on 2016-09-01
-		dateToQuery = date.today().strftime("%Y-%m-%d") #'YYYY-MM-DD' format
+		# dateToQuery = date.today().strftime("%Y-%m-%d") #'YYYY-MM-DD' format
 		#######################################################################
 
 		# mysql query statement
@@ -183,7 +183,7 @@ def getUsrData(theAccount, statementMonth, statementYear):
 		#######################################################################
 		# Until September 1, 2016 the date to query has to be the current day
 		# This section can be removed on 2016-09-01
-		dateToQuery = date.today().strftime("%Y-%m-%d") #'YYYY-MM-DD' format
+		# dateToQuery = date.today().strftime("%Y-%m-%d") #'YYYY-MM-DD' format
 		#######################################################################
 
 		# mysql query
@@ -336,26 +336,26 @@ def getDailyData(theAccount, statementMonth, statementYear):
 	dates=[]     
 
 	# get current storage dictionary (see createUsrStorageDict() for details)
-	# storageDict = createUsrStorageDict(theAccount,statementMonth,statementYear)
-	storageDict = createUsrStorageDict(theAccount,8,statementYear) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
-
+	storageDict = createUsrStorageDict(theAccount,statementMonth,statementYear)
+	# storageDict = createUsrStorageDict(theAccount,8,statementYear) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+		
 	# add all of the dates stored in the dictionary to list 'dates', then sort
-	# for date in storageDict[Months[statementMonth]].keys():
-	for date in storageDict['Aug'].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+	for date in storageDict[Months[statementMonth]].keys():
+	# for date in storageDict['Aug'].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 		dates.append(date)
 	dates.sort()
 	# add all users to a list 'users', then sort
 	# this ensures that all color coding in legend remains constant throughout
 	users=[]
-	# for user in storageDict[Months[statementMonth]][dates[len(dates)-1]].keys():
-	for user in storageDict['Aug'][dates[len(dates)-1]].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+	for user in storageDict[Months[statementMonth]][dates[len(dates)-1]].keys():
+	# for user in storageDict['Aug'][dates[len(dates)-1]].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 		users.append(user)
 	users.sort()
 	for userIndex in range(len(users)):
 		userStorage=[]
 		for i in range(len(dates)):
-			# userStorage.append(storageDict[Months[statementMonth]][dates[i]][users[userIndex]])
-			userStorage.append(storageDict['Aug'][dates[i]][users[userIndex]]) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+			userStorage.append(storageDict[Months[statementMonth]][dates[i]][users[userIndex]])
+			# userStorage.append(storageDict['Aug'][dates[i]][users[userIndex]]) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 		usage.append(userStorage)
 
 	return [usage,dates]
@@ -376,8 +376,8 @@ def getMonthlyData(theAccount, statementMonth, statementYear):
 	months=[]
 
 	# get current storage dictionary (see createUsrStorageDict() for details)
-	# storageDict = createUsrStorageDict(theAccount,statementMonth,statementYear)
-	storageDict = createUsrStorageDict(theAccount,8,statementYear) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+	storageDict = createUsrStorageDict(theAccount,statementMonth,statementYear)
+	# storageDict = createUsrStorageDict(theAccount,8,statementYear) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 
 	# fill 'months' list with valid months (remember, database was created in
 	# August 2016, so no data is available before then)
@@ -389,8 +389,8 @@ def getMonthlyData(theAccount, statementMonth, statementYear):
 	# add all users to a list 'users', then sort
 	# this ensures that all color coding in legend remains constant throughout
 	users=[]
-	# for user in storageDict[Months[statementMonth]][getQueryDate(statementMonth,statementYear)]].keys():
-	for user in storageDict['Aug'][date.today().strftime("%Y-%m-%d")].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+	for user in storageDict[Months[statementMonth]][getQueryDate(statementMonth,statementYear)].keys():
+	# for user in storageDict['Aug'][date.today().strftime("%Y-%m-%d")].keys(): # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 		users.append(user)
 	users.sort()
 
@@ -398,8 +398,8 @@ def getMonthlyData(theAccount, statementMonth, statementYear):
 		# variable to hold a list of data for a single user.
 		usageData = []
 		for month in months:
-			# usageData.append(storageDict[month][getQueryDate(MonthNumber[month],statementYear)][user])
-			usageData.append(storageDict[month][date.today().strftime('%Y-%m-%d')][user]) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+			usageData.append(storageDict[month][getQueryDate(MonthNumber[month],statementYear)][user])
+			# usageData.append(storageDict[month][date.today().strftime('%Y-%m-%d')][user]) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 		usage.append(usageData)
 
 	return [usage,months]

@@ -182,7 +182,7 @@ def storageTableout(account,projectData,userData): #
 	userTableEntry = []
 	for (user,blockUsage,filesUsage) in userData:
 		percentage = '%.2f' % (100*blockUsage/float(projectData[1]))
-		userTableEntry.append([user,kbToGb(blockUsage),0,percentage,filesUsage])
+		userTableEntry.append([user,kbToGb(blockUsage),'------------',percentage,filesUsage])
 
 	percentage = '%.2f' % (100*projectData[0]/float(projectData[1]))
 	projectTableEntry = [[account,kbToGb(projectData[0]),

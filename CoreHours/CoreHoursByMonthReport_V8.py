@@ -17,15 +17,25 @@ from datetime import date
 import UsageReportTools_V8 as Tools
 import matplotlibToReportlab as mtr
 from GenAllOutputFiles import GenAll
+from mysqlTools import getQueryDate
 
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import Frame, Paragraph
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.enums import TA_RIGHT, TA_LEFT, TA_CENTER
+from reportlab.lib.colors import red, black, purple, white, yellow
 
 from mysqlTools import *
+
+
+# Method that takes a date as a string object in YYYY-MM-DD format and
+# returns a date as a string in MM-DD format
+def dateNoYear(YYYYMMDD):
+	month=YYYYMMDD.split('-')[1]
+	day=YYYYMMDD.split('-')[2]
+	return month+'-'+day
 
 
 def GenReport(theAccount,PI,statementMonth,statementYear):
@@ -143,13 +153,23 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	styleH3 = styles['Heading3']
 	styleH3.fontName='Helvetica-Bold'
 	styleH3.fontSize=12
+	
 
-	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=1)
-	ComputeSummaryFrame = Frame(inch, 5.5*inch, 4*inch, 3.5*inch, showBoundary=1)
-	CPUHFrame1 = Frame(5*inch, 7.25*inch, 1.5*inch, 1.75*inch, showBoundary=1)
-	CPUHFrame2 = Frame(5*inch, 5.5*inch, 1.5*inch, 1.75*inch, showBoundary=1)
-	LegendFrame = Frame(6.5*inch, 5.5*inch, inch, 3.5*inch, showBoundary=1)
-	ComputeTrendFrame = Frame(inch, inch, 6.5*inch, 4.5*inch, showBoundary=1)
+	# styles['styleH3Red'] = ParagraphStyle(
+	# 	'styleH3Red',
+	# 	parent=styles['Heading3'],
+	# 	fontName='Helvetica-Bold',
+	# 	fontSize=12,
+	# 	)
+	# styleH3Red = styles['styleH3Red']
+
+	
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
+	ComputeSummaryFrame = Frame(inch, 5.5*inch, 4*inch, 3.5*inch, showBoundary=0)
+	CPUHFrame1 = Frame(5*inch, 7.25*inch, 1.5*inch, 1.75*inch, showBoundary=0)
+	CPUHFrame2 = Frame(5*inch, 5.5*inch, 1.5*inch, 1.75*inch, showBoundary=0)
+	LegendFrame = Frame(6.5*inch, 5.5*inch, inch, 3.5*inch, showBoundary=0)
+	ComputeTrendFrame = Frame(inch, inch, 6.5*inch, 4.5*inch, showBoundary=0)
 
 
 	Title = "ARCC Mt Moran Usage Statement"
@@ -194,10 +214,10 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	# Starting the second page
 
 	
-	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=1)
-	StorageSummaryFrame = Frame(inch, inch, 4.5*inch, 8*inch, showBoundary=1)
-	PieChartFrame = Frame(5.5*inch, 6.5*inch, 2*inch, 2.5*inch, showBoundary=1)
-	LegendFrame = Frame(5.5*inch, inch, 2*inch, 5.5*inch, showBoundary=1)
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
+	StorageSummaryFrame = Frame(inch, inch, 4.5*inch, 8*inch, showBoundary=0)
+	PieChartFrame = Frame(5.5*inch, 6.5*inch, 2*inch, 2.5*inch, showBoundary=0)
+	LegendFrame = Frame(5.5*inch, inch, 2*inch, 5.5*inch, showBoundary=0)
 
 	Title = "ARCC Bighorn Storage Statement"
 	head_info = []
@@ -212,7 +232,7 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 
 	storageSummary_info = []
 	storageSummary_info.append(Paragraph("Storage Summary (%s)" 
-		% theDate01, styleH3))
+		% getQueryDate(statementMonth,statementYear), styleH3))
 	storageSummary_table = Tools.storageTableout(theAccount,projectData,userData)
 	storageSummary_info.append(storageSummary_table)
 	# check to see if project has used more than 80% of its storage space, if
@@ -246,10 +266,10 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 
 	# Starting the third page
 
-	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=1)
-	MonthlyStorageChartFrame = Frame(inch, 5*inch, 5.5*inch, 4*inch, showBoundary=1)
-	YtdStorageChartFrame = Frame(inch, inch, 5.5*inch, 4*inch, showBoundary=1)
-	LegendFrame = Frame(6.5*inch, inch, inch, 8*inch, showBoundary=1)
+	HeaderFrame = Frame(inch, 9*inch, 6.5*inch, 1.5*inch, showBoundary=0)
+	MonthlyStorageChartFrame = Frame(inch, 5*inch, 5.5*inch, 4*inch, showBoundary=0)
+	YtdStorageChartFrame = Frame(inch, inch, 5.5*inch, 4*inch, showBoundary=0)
+	LegendFrame = Frame(6.5*inch, inch, inch, 8*inch, showBoundary=0)
 
 	Title = "ARCC Bighorn Storage Statement (cont)"
 	head_info = []
@@ -262,11 +282,18 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	monthlyStorageChart_info=[]
 	# collect daily stats from the database
 	dailyData=getDailyData(theAccount,statementMonth,statementYear)
-	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], dailyData[1], 6, 3.5)
-	# monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
-	# 	+"month of %s, %s" % (Months[statementMonth],statementYear), styleN))
+	
+	# remove the year from the entries in the list dailyData[1], where entries
+	# are of the form YYYY-MM-DD
+	labels = []
+	for label in dailyData[1]:
+		labels.append(dateNoYear(label))
+
+	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], labels, 6, 3.5)
 	monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
-		+"month of %s, %s" % ('Aug',statementYear), styleH3)) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
+		+"month of %s, %s" % (Months[statementMonth],statementYear), styleH3))
+	# monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
+	# 	+"month of %s, %s" % ('Aug',statementYear), styleH3)) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 	monthlyStorageChart_info.append(bighornStorageBarChart)
 	MonthlyStorageChartFrame.addFromList(monthlyStorageChart_info, c)
 
