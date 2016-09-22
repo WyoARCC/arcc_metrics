@@ -46,9 +46,9 @@ arcc_d.unbind()
 
 # Pull users out
 users = mtmoran[0][1]['memberUid']
-print mtmoran
+
 # Get the user information from the UWyo AD server in one request.
-uw_users = uwyo_d.searchByCN(users, uwyoldap.USER)
+uw_users = uwyo_d.search(users, uwyoldap.USER, uwyoldap.CN)
 l = [user.cn for user in uw_users]
 
 collegeCount = {'Ag & Nat Resources': 0,
@@ -105,7 +105,6 @@ for rect in rects:
              '%d' % int(h),
              ha='center',
              va='bottom')
-plt.savefig('User_colleges.eps', format='eps', dpi=1000)
 plt.show()
 
 print collegeCount

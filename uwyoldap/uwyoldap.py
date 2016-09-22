@@ -232,7 +232,7 @@ class LDAPUser(LDAPObj):
         self.college = []
         for group in self.memberOf.keys():
             if group.startswith("DEPT_"):
-                groupObj = self._ldap_srv.searchByCN([group], self._ldap_srv.GROUP)
+                groupObj = self._ldap_srv.search([group], GROUP, CN)
                 for member in groupObj[0].memberOf.keys():
                     if member.startswith('DIV_College of '):
                         self.college.append(member[len('DIV_College of '):])
