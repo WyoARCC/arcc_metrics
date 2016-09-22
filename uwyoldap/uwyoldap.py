@@ -3,9 +3,24 @@
 # Classes to make it easier to deal with Uwyo LDAP server
 # Originally was going to work with ARCC LDAP too,
 # but the two servers are very different.
+# A lot of this code could be better.
 import ldap
 import re
 
+URL = 'ldaps://windows.uwyo.edu'
+BASE = 'dc=windows,dc=uwyo,dc=edu'
+USER = 'Person'
+USERS = USER
+PERSON = USER
+PERSONS = PERSON
+GROUP = 'Group' 
+GROUPS = GROUP
+COMPUTER = 'Computer'
+COMPUTERS = COMPUTER
+CN = 'cn'
+DN = 'dn'
+GIDNUMBER = 'gidNumber'
+EMPTY = 'empty'
 
 def extractCN(dn):
     """Given the dn on an object, this extracts the cn."""
@@ -31,82 +46,129 @@ def createLDAPObjDict(objs):
 class UWyoLDAP(object):
     """Uwyo LDAP object. Connects to the ldap server and is used for
     searching."""
-    URL = 'ldaps://windows.uwyo.edu'
-    BASE = 'dc=windows,dc=uwyo,dc=edu'
-    USER = 'Person'
-    USERS = USER
-    PERSON = USER
-    PERSONS = PERSON
-    GROUP = 'Group' 
-    GROUPS = GROUP
-    COMPUTER = 'Computer'
-    COMPUTERS = COMPUTER
+
     LDAPObjs = {}
 
     def __init__(self, username, password):
-        self.srv = ldap.initialize(self.URL)
+        self.srv = ldap.initialize(URL)
         self.srv.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
         self.srv.simple_bind_s(username, password)
         del password
 
     def unbind(self):
         self.srv.unbind()
-
-    def searchByCNJustInfo(self, cns, cn_type, attrs=None):
-        base = self.BASE
-        filt = '(|' + ''.join('{})'.format('(CN=' + n) for n in cns) + ')'
+    
+    def searchByCN(self, cns, cn_type, attrs=None, base=None):
+        filt = '(|' + ''.join('(CN={})'.format(n) for n in cns) + ')'
         filt = '(&(objectCategory=' + cn_type + ')' + filt + ')'
 
+        if base:
+            b = base
+        else:
+            b = BASE
+
         if attrs and type(attrs) is not list:
-            print type(attrs)
             attrs = [attrs]
 
-        return self.srv.search_s(base, ldap.SCOPE_SUBTREE, filt, attrs)
-        
+        return self.srv.search_s(b, ldap.SCOPE_SUBTREE, filt, attrs)
 
-    def searchByCN(self, cns, cn_type):
+    def searchByGID(self, gids, gid_type, attrs=None, base=None):
+        filt = '(|' + ''.join('(GID={})'.format(n) for n in gids) + ')'
+        filt = '(&(objectCategory=' + gid_type + ')' + filt + ')'
+
+        if base:
+            b = base
+        else:
+            b = BASE
+
+        if attrs and type(attrs) is not list:
+            attrs = [attrs]
+
+        return self.srv.search_s(b, ldap.SCOPE_SUBTREE, filt, attrs)
+
+    def emptySearch(self, empty_type, attrs=None, base=None):
+        if base:
+            b = base
+        else:
+            b = BASE
+        filt = 'objectCategory=' + empty_type
+        if attrs and type(attrs) is not list:
+            attrs = [attrs]
+
+        return self.srv.search_s(b, ldap.SCOPE_SUBTREE, filt, attrs)
+
+#    def searchByDN(self, dns, dns_type, attrs=None):
+#        filt = '(|'
+#        for n in dns:
+#            new_n = n.split(',')
+#            new_n = '&(' + ')('.join(new_n) + ')'
+#            filt += '(' + new_n + ')'
+#        filt += ')'
+#
+#        #filts = '(&' + ''.join('({})'.format(x) for n in dns for x in n.split(',')) + ')'
+#        print filt
+#        #filt = '(|' + ''.join('{})'.format(n) for n in filts) + ')'
+#        print filt
+#        filt = '(&(objectCategory=' + dns_type + ')' + filt + ')'
+#
+#        print filt
+#
+#        if attrs and type(attrs) is not list:
+#           attrs = [attrs] 
+#
+#        return self.srv.search_s(BASE, ldap.SCOPE_SUBTREE, filt, attrs)
+
+    def search(self, vals, objs_type, vals_type, base=None):
         """Search for stuff by given cn's. Result is a list of LDAPObj objects.
         Type must be UWyoLDAP.USERS or UWyoLDAP.GROUPS. Computers aren't
         currently supported. The objects returned will be of the corresponding
-        subtype of LDAPObj objects."""
-
-        if type(cns) is not list:
-            cns = [cns]
-       
-        cn = cns[:]
+        subtype of LDAPObj objects. This stores objects that have already been found
+        once, so they aren't looked up again. This however will not work if a search
+        with no vals is done (just returning everything in the base)."""
         
+        searchers = {'cn': self.searchByCN, 'gidNumber': self.searchByGID}
+        
+        if type(vals) is not list and vals:
+            vals = [vals]
+       
         objs = []
-        for n in cn:
-            h = '@' + cn_type + '@' + n
-            if h in self.LDAPObjs.keys():
-                cn.remove(n)
-                objs.append(self.LDAPObjs[h])
+        if vals:
+            val = vals[:]
+        
+            for n in val:
+                h = '@' + objs_type + '@' + n
+                if h in self.LDAPObjs.keys():
+                    val.remove(n)
+                    objs.append(self.LDAPObjs[h])
 
-        if cn == []:
-            return objs
+            if val == []:
+                return objs
+            results = searchers[vals_type](val, objs_type, None, base)
         else:
-            results = self.searchByCNJustInfo(cn, cn_type)
-            for result in results:
-                if result[0] is not None:
-                    # Groups with large amounts of users have the users given 
-                    # in ranges. This handles that.
-                    if 'member' in result[1]:
-                        members_r =  [k for k in result[1].keys() if 'range' in k.lower() and 'member' in k.lower()]
+            results = self.emptySearch(objs_type, None, base)
+
+        for result in results:
+            if result[0] is not None:
+                # Groups with large amounts of users have the users given 
+                # in ranges. This handles that.
+                if 'member' in result[1]:
+                    members_r =  [k for k in result[1].keys() if 'range' in k.lower() and 'member' in k.lower()]
+                    if members_r:
                         members_r = result[1][members_r[0]]
-                        if members_r:
-                            range_inc = len(members_r)
-                            result[1]['member'].extend(members_r)
-                            range_v = range_inc
+                        range_inc = len(members_r)
+                        result[1]['member'].extend(members_r)
+                        range_v = range_inc
                         while len(members_r) == range_inc:
                             attr = 'member;range=' + str(range_v) + '-' + str((range_v+range_inc)-1)
-                            add_info = self.searchByCNJustInfo(cn, cn_type, [attr])
+                            add_info = self.searchByCN([extractCN(result[0])], objs_type, [attr])
                             members_r =  add_info[0][1][add_info[0][1].keys()[0]]
                             range_v += range_inc
                             result[1]['member'].extend(members_r)
-
-                    obj = createLDAPObj(result, self)
-                    self.LDAPObjs['@' + cn_type + '@' + obj.cn] = obj
-                    objs.append(obj)
+                obj = createLDAPObj(result, self)
+                self.LDAPObjs['@' + objs_type + '@' + obj.cn] = obj
+                self.LDAPObjs['@' + objs_type + '@' + obj.gid] = obj
+                #self.LDAPObjs['@' + objs_type + '@' + obj.dn] = obj
+                objs.append(obj)
         return objs
 
 
@@ -114,8 +176,8 @@ class LDAPObj(object):
     """Base class for ldap objects. The subclasses are LDAPUser, LDAPGroup, and
     LDAPComputer."""
     def __init__(self, info, ldap_srv):
-        self.cn = extractCN(info[0])
-        self.cn = self.cn
+        self.dn = info[0]
+        self.cn = extractCN(self.dn)
         self.memberOf = {}
         self.info = info
 
@@ -183,7 +245,6 @@ class LDAPGroup(LDAPObj):
         super(LDAPGroup, self).__init__(info, ldap_srv)
         self.members = {}
         # Create dictionary of CN's and their corresponding DN's
-        print info[0]
         if 'member' in info[1]:
             for obj in info[1]['member']:
                 self.members[extractCN(obj)] = obj

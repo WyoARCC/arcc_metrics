@@ -155,7 +155,7 @@ for group in groups:
     # Last, there is the size field. It is the number of members in the group
     # plus 2 to make group nodes always larger then user nodes.
     members_cn = [getMemberCN(member) for member in members]
-    uw_users = uw_srv.searchByCN(members_cn, uw_srv.USER)
+    uw_users = uw_srv.searchByCN(members_cn, uwyoldap.USER)
     rows = []
     #uw_users = uwyoldap.createLDAPObjDict(uw_users)
     # Go through the members, add them to the data file.

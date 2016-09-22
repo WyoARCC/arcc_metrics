@@ -48,7 +48,7 @@ arcc_d.unbind()
 users = mtmoran[0][1]['memberUid']
 print mtmoran
 # Get the user information from the UWyo AD server in one request.
-uw_users = uwyo_d.searchByCN(users, uwyo_d.USER)
+uw_users = uwyo_d.searchByCN(users, uwyoldap.USER)
 l = [user.cn for user in uw_users]
 
 collegeCount = {'Ag & Nat Resources': 0,

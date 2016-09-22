@@ -12,10 +12,10 @@ username = raw_input('Username: ')
 password = getpass.getpass()
 
 srv = uwyoldap.UWyoLDAP(username, password)
-u = srv.searchByCN(users, srv.USERS)
+u = srv.search(users, uwyoldap.USERS, uwyoldap.CN)
 students = [user.cn for user in u if user.isStudent]
 
-g = srv.searchByCN("Enrolled Students", srv.GROUPS)
+g = srv.search("Enrolled Students", uwyoldap.GROUPS, uwyoldap.CN)
 print "Number of Students that are users of Mount Moran: " + str(len(students))
 print "Number of Students total: " + str(len(g[0].members))
 print "Percentage of students that are Mount Moran users: " + str(len(students)/float(len(g[0].members))*100)
