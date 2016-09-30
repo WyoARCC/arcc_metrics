@@ -83,7 +83,7 @@ def zeroPadNewUsers(storageDict,statementMonth,statementYear):
 		if Months[i] in storageDict:
 			for date in storageDict[Months[i]].keys():
 	 			dates.append(date)
-				dates.sort()
+	 			dates.sort()
 			for user in currentUsers:
 				for j in range(len(dates)):
 					if user not in storageDict[Months[i]][dates[j]]:

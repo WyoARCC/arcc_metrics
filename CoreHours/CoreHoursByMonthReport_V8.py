@@ -1,13 +1,9 @@
 ###############################################################################
-# GenAllReports.py
+# CoreHoursByMonthReport_V8.py
 # Jeremy Clay
 # Aug 20, 2016
 # 
-# This file serves as the main function call.  Running this file will generate
-# a .pdf file that reports the CPU usage of Mt. Moran as well as the amount of
-# disk space that is being consumed on Bighorn for every active account on Mt.
-# Moran.  The .pdf file will automatically be attached to a very short email
-# and sent to the principle investigator of each account.
+# 
 # 
 # Dependencies:	
 ###############################################################################
@@ -50,6 +46,12 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 
 	CPUHUsageDict = {}
 	NumJobsDict = {}
+	
+	####################################################################################
+	# debugging
+	#print ('statementMonth: ' + statementMonth)
+	#print ('account: ' + account)
+	####################################################################################
 
 	for i in range(1,statementMonth+1):
 		fileToOpen=account+'_'+Months[i]+'.out'
@@ -292,8 +294,6 @@ def GenReport(theAccount,PI,statementMonth,statementYear):
 	bighornStorageBarChart=Tools.graphout_stackedBar(dailyData[0], labels, 6, 3.5)
 	monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
 		+"month of %s, %s" % (Months[statementMonth],statementYear), styleH3))
-	# monthlyStorageChart_info.append(Paragraph("Daily Storage Summary for the "\
-	# 	+"month of %s, %s" % ('Aug',statementYear), styleH3)) # this is temporary, delete this line on or after 2016-09-01 and uncomment line above
 	monthlyStorageChart_info.append(bighornStorageBarChart)
 	MonthlyStorageChartFrame.addFromList(monthlyStorageChart_info, c)
 

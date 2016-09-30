@@ -19,20 +19,20 @@ def activeGroups():
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of all of the active groups
-		activeGroups = ipaResults.split(':')[1].strip()
+		# activeGroups = ipaResults.split(':')[1].strip() # this version works for Python 2.7
+		activeGroups = ipaResults.decode('utf8').split(':')[1].strip() # this version works for Python 3.4
 
 		# turn the string of comma seperated groups into a list
 		listOfGroups = activeGroups.split(',')
 
 		# strip leading and trailing whitespace from groupnames
 		for i in range (len(listOfGroups)):
-			listOfGroups[i] = listOfGroups[i].strip()
+			listOfGroups[i] = str(listOfGroups[i].strip())
 
 		return listOfGroups
 	
 	except:
-		print "The command: (ipa group-show mountmoran --all | grep -i 'member"\
-			+" groups') failed."
+		print ('The command: ('+ipaCommand+') failed.')
 		exit(1)
 
 	
@@ -47,13 +47,13 @@ def getPI(groupName):
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		loginName = ipaResults.split(':')[1].strip()
+		# loginName = ipaResults.split(':')[1].strip() # version works for Python 2.7
+		loginName = ipaResults.decode('utf8').split(':')[1].strip()
 		
-		return loginName
+		return str(loginName)
 	
 	except:
-		print "The command: (ipa group-show " + groupName + " --all | grep -i"\
-			+" 'Description:') failed."
+		print ('The command: ('+ipaCommand+') failed.')
 		return ''
 		#exit(1)
 
@@ -69,13 +69,13 @@ def getName(loginName):
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		displayName = ipaResults.split(':')[1].strip()
+		# displayName = ipaResults.split(':')[1].strip() # version works for Python 2.7
+		displayName = ipaResults.decode('utf8').split(':')[1].strip()
 		
-		return displayName
+		return str(displayName)
 
 	except:
-		print "The command: (ipa user-show " + loginName + " --all | grep -i"\
-			+" 'Display name:') failed."
+		print ('The command: ('+ipaCommand+') failed.')
 		return ''
 		#exit(1)
 
@@ -91,12 +91,12 @@ def getEmail(loginName):
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		email = ipaResults.split(':')[1].strip()
+		# email = ipaResults.split(':')[1].strip() # version works for Python 2.7
+		email = ipaResults.decode('utf8').split(':')[1].strip()
 		
-		return email
+		return str(email)
 	
 	except:
-		print "The command: (ipa user-show " + loginName + " --all | grep -i"\
-			+" 'Email address:') failed."
+		print ('The command: ('+ipaCommand+') failed.')
 		return ''
 		#exit(1)

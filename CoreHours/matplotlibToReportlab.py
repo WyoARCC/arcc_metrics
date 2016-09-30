@@ -1,5 +1,5 @@
 ###############################################################################
-# GenAllReports.py
+# matplotlibToReportlab.py
 # Jeremy Clay
 # Aug 20, 2016
 # 
@@ -19,11 +19,17 @@
 # The make_chart() method is original code created by Jeremy Clay.  This method
 # defines the matplotlib graph
 # 
-# Dependencies: 
+# Dependencies: numpy, matplotlib, reportlab, pdfrw
 ###############################################################################
 
-import cStringIO
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 import numpy as np
+# import matplotlib
+# matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from reportlab.platypus import Flowable
 from reportlab.lib.units import inch
@@ -156,11 +162,12 @@ def make_chart(xLabels,y1,y2,statementMonth):
     plt.legend([cpu_hours_plot, num_jobs_plot], ['CPU Hours', 'Number of Jobs'])
 
     # next 6 lines copied from a stackoverflow webpage.  See header for details
-    imgdata = cStringIO.StringIO()
+    imgdata = StringIO()
     fig.savefig(imgdata, format='pdf')
     imgdata.seek(0)
     reader = form_xo_reader
     image = reader(imgdata)
     img = PdfImage(image, width=6.15*inch, height=3.05*inch)
-    
+    plt.close(fig)
+
     return img

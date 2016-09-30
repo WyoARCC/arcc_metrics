@@ -9,12 +9,13 @@
 # 
 # 
 # Dependencies:
+#	reportlab library for python
 ###############################################################################
 
 
 # Libraries
 from reportlab.platypus import *
-from reportlab.graphics.shapes import Drawing, Circle
+from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.charts.piecharts import Pie
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.charts.legends import Legend

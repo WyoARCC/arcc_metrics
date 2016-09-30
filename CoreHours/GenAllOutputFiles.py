@@ -18,7 +18,10 @@
 # Dependencies:	
 ###############################################################################
 
-from sets import Set
+try:
+    from sets import Set
+except ImportError:
+    Set = set
 import os
 
 Months = {1:'Jan', 2:'Feb', 3:'Mar', 4:'April', 5:'May', 6:'June', 7:'July',
@@ -57,3 +60,4 @@ def GenAll(statementMonth):
 			f.close()
 
 	return list(accounts)
+	

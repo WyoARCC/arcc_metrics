@@ -1,3 +1,14 @@
+###############################################################################
+# ldapShowTools.py
+# Jeremy Clay
+# July 28, 2016
+#
+# 
+#
+#
+###############################################################################
+
+
 import subprocess
 import os
 import base64
@@ -25,9 +36,7 @@ def activeGroups():
 		return activeGroups
 	
 	except:
-		print 'The command:(ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu'\
-			+' -x -b "cn=accounts,dc=arcc,dc=uwyo,dc=edu" "cn=mountmoran" |'\
-			+' grep -i member:) failed.'
+		print ('The command: ('+ldapCommand+') failed.')
 		exit(1)
 
 
@@ -50,9 +59,7 @@ def getPI(groupName):
 		return loginName
 	
 	except:
-		print 'The command: (ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu'\
-			+' -x -b "cn=accounts,dc=arcc,dc=uwyo,dc=edu" "cn='+groupName+'"'\
-			+' | grep -i description) failed.'
+		print ('The command: ('+ldapCommand+') failed.')
 		return ''
 		#exit(1)
 
@@ -74,9 +81,7 @@ def getUidNumber(uid):
 		return uidNumber
 
 	except:
-		print 'The command: (ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu'\
-			+' -x -b "cn=accounts,dc=arcc,dc=uwyo,dc=edu" "uid='+uid+'"'\
-			+' | grep -i gidNumber) failed.'
+		print ('The command: ('+ldapCommand+') failed.')
 		return ''
 
 
@@ -98,9 +103,7 @@ def getName(uid):
 		return displayName
 
 	except:
-		print 'The command: (ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu'\
-			+' -x -b "cn=accounts,dc=arcc,dc=uwyo,dc=edu" "uid='+uid+'"'\
-			+' | grep -i displayName) failed.'
+		print ('The command: ('+ldapCommand+') failed.')
 		return ''
 		#exit(1)
 
@@ -121,9 +124,7 @@ def getEmail(uid):
 		return email
 
 	except:
-		print 'The command: (ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu'\
-			+' -x -b "cn=accounts,dc=arcc,dc=uwyo,dc=edu" "uid='+uid+'"'\
-			+' | grep -i mail) failed.'
+		print ('The command: ('+ldapCommand+') failed.')
 		return ''
 
 

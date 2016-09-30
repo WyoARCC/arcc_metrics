@@ -55,7 +55,7 @@ parser.add_argument("-Y", "--year", type=int,
 args = parser.parse_args()
 
 # based on users input, local variables statementMonth and statementYear are
-# initialized.  
+# initialized.
 if args.month == None or args.month >= int(date.today().strftime("%m")):
 	if args.year == None or args.year >= int(date.today().strftime("%Y")) or \
 	args.year < 2016:
@@ -102,20 +102,20 @@ activeGroups = ipaShowTools.activeGroups() if args.ipa else ldapShowTools.active
 
 ###############################################################################
 # Debugging purposes
-# print 'A list of all accounts:\n', accounts
+# print ('A list of all accounts:\n', accounts)
 
-# print '\nA list of all active groups:\n', activeGroups
+# print ('\nA list of all active groups:\n', activeGroups)
 
-print 'Generating monthly statements for the month of %s' % Months[statementMonth]
+print ('Generating monthly statements for the month of %s' % Months[statementMonth])
 # end debugging
 ###############################################################################
 
 
 
 if args.ipa:
-	print 'Using ipa command.'
+	print ('Using ipa command.')
 else:
-	print 'Using ldapsearch command.'
+	print ('Using ldapsearch command.')
 
 # variable to store the path of the archive folder
 archiveFolder = '/home/jclay6/arcc_metrics/Reports/mtmoran/'
@@ -132,8 +132,29 @@ for account in accounts:
 		uid = ipaShowTools.getPI(account) if args.ipa else ldapShowTools.getPI(account)
 		fullName = ipaShowTools.getName(uid) if args.ipa else ldapShowTools.getName(uid)
 		email = ipaShowTools.getEmail(uid) if args.ipa else ldapShowTools.getEmail(uid)
-		
-		GenReport(account, fullName, statementMonth,statementYear)
+
+
+######################################################################################################
+# debugging		
+		accountIs = account
+		accountPrint = 'account: '+accountIs
+		print(accountPrint)
+		fullNameIs = fullName
+		fullNamePrint = 'fullName: '+fullNameIs
+		print(fullNamePrint)
+		statementMonthIs = str(statementMonth)
+		statementMonthPrint = 'statementMonth: '+statementMonthIs
+		print(statementMonthPrint)
+		statementYearIs = str(statementYear)
+		statementYearPrint = 'statementYear: '+statementYearIs
+		print(statementYearPrint)
+		GenReportCall = 'Calling: GenReport(str(account), str(fullName), int(statementMonth), int(statementYear)'
+		print(GenReportCall)
+######################################################################################################
+
+
+		# GenReport(account, fullName, statementMonth,statementYear) # this version works in Python 2.7
+		GenReport(account, fullName, statementMonth, statementYear)
 
 		# Archive the report in:
 		# /home/jclay6/arcc_metrics/Reports/mtmoran/<statementYear>/<account>/reportname.pdf
@@ -146,9 +167,9 @@ for account in accounts:
 ###############################################################################
 # debugging section, remove from final version
 
-		print '\nGroup: %s' % account
-		print 'PI: %s, %s' % (uid, fullName)
-		print 'Email: %s\n' % email
+		print ('\nGroup: %s' % account)
+		print ('PI: %s, %s' % (uid, fullName))
+		print ('Email: %s\n' % email)
 
 		# myEmail = 'jclay6@uwyo.edu'
 
