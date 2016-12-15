@@ -19,8 +19,7 @@ def activeGroups():
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of all of the active groups
-		# activeGroups = ipaResults.split(':')[1].strip() # this version works for Python 2.7
-		activeGroups = ipaResults.decode('utf8').split(':')[1].strip() # this version works for Python 3.4
+		activeGroups = ipaResults.decode('utf8').split(':')[1].strip()
 
 		# turn the string of comma seperated groups into a list
 		listOfGroups = activeGroups.split(',')
@@ -47,17 +46,13 @@ def getPI(groupName):
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		# loginName = ipaResults.split(':')[1].strip() # version works for Python 2.7
 		loginName = ipaResults.decode('utf8').split(':')[1].strip()
 		
 		return str(loginName)
 	
 	except:
 		print ('The command: ('+ipaCommand+') failed.')
-		return ''
-		#exit(1)
-
-	
+		return ''	
 
 
 # function that takes an argument of 'loginName' and returns a string of the
@@ -69,17 +64,13 @@ def getName(loginName):
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		# displayName = ipaResults.split(':')[1].strip() # version works for Python 2.7
 		displayName = ipaResults.decode('utf8').split(':')[1].strip()
 		
 		return str(displayName)
 
 	except:
 		print ('The command: ('+ipaCommand+') failed.')
-		return ''
-		#exit(1)
-
-	
+		return ''	
 
 
 # function that takes an argument of 'loginName' and returns a string of the
@@ -91,7 +82,6 @@ def getEmail(loginName):
 		ipaResults = subprocess.check_output(ipaCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		# email = ipaResults.split(':')[1].strip() # version works for Python 2.7
 		email = ipaResults.decode('utf8').split(':')[1].strip()
 		
 		return str(email)
@@ -99,4 +89,3 @@ def getEmail(loginName):
 	except:
 		print ('The command: ('+ipaCommand+') failed.')
 		return ''
-		#exit(1)

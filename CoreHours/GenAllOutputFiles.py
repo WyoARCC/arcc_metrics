@@ -41,7 +41,7 @@ def GenAll(statementMonth):
 	# The four seperate field seperated by '|' are Cluster, Account, User, and
 	# CPU time (in seconds)
 	for i in range(1,statementMonth+1):
-		fileToOpen='all_'+Months[i]+'_T.out'
+		fileToOpen='sacctOutputFiles/all_'+Months[i]+'_T.out'
 		jobfile=open(fileToOpen,'r')
 		# parse the file by each line and store them in a list - 'jobs'
 		jobs=jobfile.read().strip().split('\n')

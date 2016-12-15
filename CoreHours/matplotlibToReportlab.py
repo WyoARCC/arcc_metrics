@@ -9,11 +9,9 @@
 # document.  
 #
 #
-# The majority of this file was copied from:
+# The PdfImage() class definition was copied from:
 # http://stackoverflow.com/questions/31712386/loading-matplotlib-object-into-reportlab
-# the PdfImage() class definition as well as the form_xo_reader() method were
-# copied directly from the website.  Credit to: Patrick Maupin who shared his
-# solution.
+# Credit to: Patrick Maupin who shared his solution.
 #
 #
 # The make_chart() method is original code created by Jeremy Clay.  This method
@@ -23,24 +21,15 @@
 ###############################################################################
 
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
 import numpy as np
-# import matplotlib
-# matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from reportlab.platypus import Flowable
 from reportlab.lib.units import inch
-from pdfrw import PdfReader, PdfDict
-from pdfrw.buildxobj import pagexobj
+from reportlab.lib.utils import ImageReader
+from pdfrw import PdfDict
 from pdfrw.toreportlab import makerl
 
-# method copied from web.  See header for details
-def form_xo_reader(imgdata):
-    page, = PdfReader(imgdata).pages
-    return pagexobj(page)
 
 # class definition copied from web.  See header for details
 class PdfImage(Flowable):
@@ -161,12 +150,12 @@ def make_chart(xLabels,y1,y2,statementMonth):
     # create a plot legend
     plt.legend([cpu_hours_plot, num_jobs_plot], ['CPU Hours', 'Number of Jobs'])
 
-    # next 6 lines copied from a stackoverflow webpage.  See header for details
-    imgdata = StringIO()
-    fig.savefig(imgdata, format='pdf')
+    # next 6 lines copied from a stackoverflow webpage with some minor changes.
+    # See header for details
+    imgdata = BytesIO()
+    fig.savefig(imgdata, format='png')
     imgdata.seek(0)
-    reader = form_xo_reader
-    image = reader(imgdata)
+    image = ImageReader(imgdata)
     img = PdfImage(image, width=6.15*inch, height=3.05*inch)
     plt.close(fig)
 

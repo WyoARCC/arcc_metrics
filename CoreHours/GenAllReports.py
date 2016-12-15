@@ -19,7 +19,7 @@
 
 
 from GenAllOutputFiles import GenAll
-from CoreHoursByMonthReport_V8 import GenReport
+from CoreHoursByMonthReport import GenReport
 import ipaShowTools
 import ldapShowTools
 import os
@@ -99,19 +99,6 @@ accounts=GenAll(statementMonth)
 # all groups that are active members of Mt. Moran 
 activeGroups = ipaShowTools.activeGroups() if args.ipa else ldapShowTools.activeGroups()
 
-
-###############################################################################
-# Debugging purposes
-# print ('A list of all accounts:\n', accounts)
-
-# print ('\nA list of all active groups:\n', activeGroups)
-
-print ('Generating monthly statements for the month of %s' % Months[statementMonth])
-# end debugging
-###############################################################################
-
-
-
 if args.ipa:
 	print ('Using ipa command.')
 else:
@@ -136,20 +123,20 @@ for account in accounts:
 
 ######################################################################################################
 # debugging		
-		accountIs = account
-		accountPrint = 'account: '+accountIs
-		print(accountPrint)
-		fullNameIs = fullName
-		fullNamePrint = 'fullName: '+fullNameIs
-		print(fullNamePrint)
-		statementMonthIs = str(statementMonth)
-		statementMonthPrint = 'statementMonth: '+statementMonthIs
-		print(statementMonthPrint)
-		statementYearIs = str(statementYear)
-		statementYearPrint = 'statementYear: '+statementYearIs
-		print(statementYearPrint)
-		GenReportCall = 'Calling: GenReport(str(account), str(fullName), int(statementMonth), int(statementYear)'
-		print(GenReportCall)
+		# accountIs = account
+		# accountPrint = 'account: '+accountIs
+		# print(accountPrint)
+		# fullNameIs = fullName
+		# fullNamePrint = 'fullName: '+fullNameIs
+		# print(fullNamePrint)
+		# statementMonthIs = str(statementMonth)
+		# statementMonthPrint = 'statementMonth: '+statementMonthIs
+		# print(statementMonthPrint)
+		# statementYearIs = str(statementYear)
+		# statementYearPrint = 'statementYear: '+statementYearIs
+		# print(statementYearPrint)
+		# GenReportCall = 'Calling: GenReport(str(account), str(fullName), int(statementMonth), int(statementYear)'
+		# print(GenReportCall)
 ######################################################################################################
 
 
@@ -165,46 +152,48 @@ for account in accounts:
 		
 
 ###############################################################################
-# debugging section, remove from final version
+# debugging section, generates emails and sends them to jclay6@uwyo.edu
 
 		print ('\nGroup: %s' % account)
 		print ('PI: %s, %s' % (uid, fullName))
 		print ('Email: %s\n' % email)
 
-		# myEmail = 'jclay6@uwyo.edu'
+		myEmail = 'jclay6@uwyo.edu'
 
 		# cc line for bash command, should be pasted after the line beginning
 		# with +"-r and before the line beginning with +myEmail\
-		#	+"-c arcc-info@uwyo.edu "\
-		#			+"-c ksodhi@uwyo.edu,ceastma2@uwyo.edu "\
+		# 	+"-c arcc-info@uwyo.edu "\
 
-		# bashCommand="mail -s 'Mt Moran Usage Report for "+account+"' "\
-		# 	+"-a "+account+"_report_"+theDateYYYYmmdd+".pdf "\
-		# 	+"-r arcc-info@uwyo.edu "\
-		# 	+myEmail\
-		# 	+" <<< 'Dear "+fullName+",\n\n\tWe at ARCC hope that our"\
-		# 	+" services, including the use of Mt. Moran, have been beneficial"\
-		# 	+" to you and your research team.  Attached is a"\
-		# 	+" monthly usage statement for the "+account+" group.  Last month,"\
-		# 	+" many of the principal investigators replied to a similar email"\
-		# 	+" with suggestions on how to make this report more useful to"\
-		# 	+" them and their investigative teams.  In reponse to these"\
-		# 	+" requests, two additional pages have been added to the report"\
-		# 	+" that reflect the group storage usage on the Bighorn cluster. "\
-		# 	+" With enough feedback from principal investigators such as"\
-		# 	+" yourself, this report will evolve into a tool more useful for"\
-		# 	+" all ARCC PIs.  Please reply to"\
-		# 	+" this email with any questions or comments.\n\nGeneral ARCC"\
-		# 	+" questions can also be emailed to arcc-info@uwyo.edu and"\
-		# 	+" service requests may be opened by emailing arcc-help@uwyo.edu."\
-		# 	+"\n\nThe ARCC Team'"
+		bashCommand="mail -s 'Mt Moran Usage Report for "+account+"' "\
+			+"-a "+account+"_report_"+theDateYYYYmmdd+".pdf "\
+		 	+"-r arcc-info@uwyo.edu "\
+		 	+myEmail\
+		 	+" <<< 'Dear "+fullName+",\n\n\tWe at ARCC hope that our"\
+		 	+" services, including the use of Mt. Moran, have been beneficial"\
+		 	+" to you and your research team.  Attached is a"\
+		 	+" monthly usage statement for the "+account+" group.  Previously,"\
+		 	+" many of the principal investigators replied to a similar email"\
+		 	+" with suggestions on how to make this report more useful to"\
+		 	+" them and their investigative teams.  In reponse to these"\
+		 	+" requests, two additional pages have been added to the report"\
+		 	+" that reflect the group storage usage on the Bighorn cluster. "\
+		 	+" With enough feedback from principal investigators such as"\
+		 	+" yourself, this report will evolve into a tool more useful for"\
+		 	+" all ARCC PIs.  Please reply to"\
+		 	+" this email with any questions or comments.\n\nGeneral ARCC"\
+		 	+" questions can also be emailed to arcc-info@uwyo.edu and"\
+		 	+" service requests may be opened by emailing arcc-help@uwyo.edu."\
+		 	+"\n\nThe ARCC Team'"
 
-		# if not(email == ''):
-		# 	os.system(bashCommand)
+		if not(email == ''):
+		 	os.system(bashCommand)
 		
 # end of debugging
 ###############################################################################
 
+
+###############################################################################
+# WARNING the following lines of code will send out emails to all PIs!
 
 		# Send emails to all PIs
 
@@ -216,7 +205,7 @@ for account in accounts:
 		# 	+" <<< 'Dear "+fullName+",\n\n\tWe at ARCC hope that our"\
 		# 	+" services, including the use of Mt. Moran, have been beneficial"\
 		# 	+" to you and your research team.  Attached is a"\
-		# 	+" monthly usage statement for the "+account+" group.  Last month,"\
+		# 	+" monthly usage statement for the "+account+" group.  Previously,"\
 		# 	+" many of the principal investigators replied to a similar email"\
 		# 	+" with suggestions on how to make this report more useful to"\
 		# 	+" them and their investigative teams.  In reponse to these"\
@@ -233,7 +222,10 @@ for account in accounts:
 		# if not(email == ''):
 		# 	os.system(bashCommand)
 
-# delete created files that are no longer necessary to keep
+# end WARNING
+###############################################################################
+
+#delete created files that are no longer necessary to keep
 for i in range(1,statementMonth+1):
 	bashCommand = 'rm *'+Months[i]+'.out'
 	os.system(bashCommand)

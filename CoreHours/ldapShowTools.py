@@ -26,7 +26,7 @@ def activeGroups():
 		ldapResults = subprocess.check_output(ldapCommand, shell=True).strip()
 		
 		# from ldapResults, extract a string of all of the active groups
-		members = ldapResults.split('\n')
+		members = ldapResults.decode('utf8').split('\n')
 		for i in range(len(members)):
 			members[i] = members[i].split(':')[1].strip()
 			members[i] = members[i].split(',')[0].strip()
@@ -52,7 +52,7 @@ def getPI(groupName):
 		ldapResults = subprocess.check_output(ldapCommand, shell=True).strip()
 		
 		# from ldapResults, extract a string of the login name of the PI
-		loginName = ldapResults.split(':')[1].strip()
+		loginName = ldapResults.decode('utf8').split(':')[1].strip()
 		if loginName == '':
 			loginName = convertBase64(ldapResults)
 		
@@ -61,7 +61,6 @@ def getPI(groupName):
 	except:
 		print ('The command: ('+ldapCommand+') failed.')
 		return ''
-		#exit(1)
 
 
 
@@ -76,7 +75,7 @@ def getUidNumber(uid):
 		ldapResults = subprocess.check_output(ldapCommand, shell=True)
 
 		# from ldapResults, extract a string of the gidNumber of the PI
-		uidNumber = ldapResults.split(':')[1].strip()
+		uidNumber = ldapResults.decode('utf8').split(':')[1].strip()
 		
 		return uidNumber
 
@@ -86,10 +85,9 @@ def getUidNumber(uid):
 
 
 
-# function that takes an argument of 'gidNumber' and returns a string of the
-# user's full name
+# function that takes an argument of 'uid' (user id) and returns a string of
+# the user's full name
 def getName(uid):
-	# gidNumber=str(gidNumber)
 	ldapCommand = 'ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu -x'\
 		+' -b "cn=accounts,dc=arcc,dc=uwyo,dc=edu" "uid='+uid+'"'\
 		+' | grep -i displayName'
@@ -98,18 +96,17 @@ def getName(uid):
 		ldapResults = subprocess.check_output(ldapCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		displayName = ldapResults.split(':')[1].strip()
+		displayName = ldapResults.decode('utf8').split(':')[1].strip()
 		
 		return displayName
 
 	except:
 		print ('The command: ('+ldapCommand+') failed.')
 		return ''
-		#exit(1)
 
 	
 
-# function that takes an argument of 'gidNumber' and returns a string of the
+# function that takes an argument of 'uid' and returns a string of the
 # user's email address
 def getEmail(uid):
 	ldapCommand = 'ldapsearch -LLL -H ldaps://arccidm1.arcc.uwyo.edu -x'\
@@ -119,7 +116,7 @@ def getEmail(uid):
 		ldapResults = subprocess.check_output(ldapCommand, shell=True)
 		
 		# from ipaResults, extract a string of the login name of the PI
-		email = ldapResults.split(':')[1].strip()
+		email = ldapResults.decode('utf8').split(':')[1].strip()
 		
 		return email
 
