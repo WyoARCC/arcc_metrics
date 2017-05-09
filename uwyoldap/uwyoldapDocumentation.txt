@@ -1,0 +1,64 @@
+uwyoldap Documentation
+uwyoldap is a python module to make it easier to work with
+UW's LDAP server.
+
+The main class is UWyoLDAP. Using it creates a connection
+to the server, and the object can be used to perform searches.
+To connect, all that is needed is a username (with domain) and
+a password. I recommend getting the password using the python module
+getpass. A function called unbind is provided to disconnect
+from the server.
+
+search is the main search function. It uses searchByCN,
+searchByGID, and emptySearch to actually perform it's
+searches. Search takes in the "search term",
+this can either be empty, CNs, or GIDs. It also needs
+the type for the object being searched for, and finally,
+it needs an argument to say whether CNs or GIDs are 
+what the "search term" is. The type for the object
+and the search term should be provided as constants.
+The constants are in the module. For the object type
+they are GROUP and USER. For the "search term" type
+they are CN, EMPTY, and GIDNUMBER. Search returns
+a list of objects, either a list of LDAPUser objects
+or a list of LDAPGroup objects.
+
+Both the LDAPUser and LDAPGroup classes inherit from the LDAPObj
+class. This class has the following attributes:
+- dn: the distinguished name of the object
+- cn: the common name of the object
+- memberOf: a list of CNs for groups that the object is a member of
+- info: a list of the info returned from the search
+description: the description of the object, if it exists
+
+LDAPUser has all of the attributes from the LDAPObj class.
+It also has the following attributes:
+- departments: a list of departments that the user is a member of
+- isFaculty: a boolean that is true if the user is faculty
+- isEmployee: a boolean that is true if the user is an employee
+- isStudent: a boolean that is true if the user is a student
+- isARCCEmployee: a boolean that is true if the user is an ARCC employee
+- isRetired: a boolean that is true if the user is retired
+
+LDAPUser has one method getCollege()
+It takes no arguments, and returns a list of colleges that the user
+belongs to. It doesn't work on undergraduate students.
+
+LDAPGroup also has all of the attributes from the LDAPObj class.
+It also has the following attributes:
+- member: a dictionary of members of the group. The key is the CN of 
+the member, the value is the DN of that member.
+
+Finally, there is an LDAPComputer class, but it isn't finished
+or supported by the rest of the code.
+
+
+Examples
+For examples of this class in use take a look at the following scripts:
+Under the arcc_metrics repo:
+- num_of_faculty.py
+- num_of_students.py
+- user_colleges.py
+- usernetplot/usernetplot.py
+Under the idm-management-tools repo:
+- adtoidm.py
